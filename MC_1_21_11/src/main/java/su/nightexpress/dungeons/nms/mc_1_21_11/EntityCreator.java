@@ -2,8 +2,9 @@ package su.nightexpress.dungeons.nms.mc_1_21_11;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
-import org.bukkit.craftbukkit.v1_21_R7.entity.CraftEntityType;
+import org.bukkit.craftbukkit.entity.CraftEntityType;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import su.nightexpress.dungeons.nms.mc_1_21_11.mob.*;
@@ -101,19 +102,29 @@ public class EntityCreator {
     }
 
     public static boolean isSupported(@NotNull EntityType type) {
-        return isCustom(type) || isVanilla(type);
+        return isCustom(type) || isVanilla(type) || isGenericLivingType(type);
     }
 
     @Nullable
     public static Mob createEntity(/*@NotNull Dungeon arena, @NotNull MobFaction faction, */@NotNull EntityType type, @NotNull ServerLevel level) {
-        if (VANILLA_SUPPORTED.contains(type)) {
+        if (VANILLA_SUPPORTED.contains(type) || isGenericLivingType(type)) {
             var nmsType = CraftEntityType.bukkitToMinecraft(type);
-            return (Mob) nmsType.create(level, null);
+            if (nmsType == null) return null;
+
+            var created = nmsType.create(level, null);
+            return created instanceof Mob mob ? mob : null;
         }
 
         Creator<?> creator = CUSTOMS.get(type);
         if (creator == null) return null;
 
         return creator.create(level/*, arena, faction*/);
+    }
+
+    private static boolean isGenericLivingType(@NotNull EntityType type) {
+        if (!type.isAlive() || !type.isSpawnable()) return false;
+
+        Class<?> entityClass = type.getEntityClass();
+        return entityClass != null && LivingEntity.class.isAssignableFrom(entityClass);
     }
 }

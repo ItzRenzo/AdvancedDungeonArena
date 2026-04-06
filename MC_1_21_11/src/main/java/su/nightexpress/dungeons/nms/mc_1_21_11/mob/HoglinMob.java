@@ -67,7 +67,7 @@ public class HoglinMob extends Hoglin implements DungeonHolder {
     }
 
     @Override
-    protected SoundEvent getAmbientSound() {
+    public SoundEvent getAmbientSound() {
         return null;
     }
 

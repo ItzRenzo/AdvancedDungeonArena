@@ -1,5 +1,7 @@
 package su.nightexpress.dungeons.dungeon.listener;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -74,7 +76,7 @@ public class DungeonGameListener extends AbstractListener<DungeonPlugin> {
 
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onDungeonPlayerChat(AsyncPlayerChatEvent event) {
+    public void onDungeonPlayerChat(AsyncChatEvent event) {
         if (!Config.CHAT_ENABLED.get()) return;
 
         Player player = event.getPlayer();
@@ -89,7 +91,7 @@ public class DungeonGameListener extends AbstractListener<DungeonPlugin> {
             .replace(dungeon.replacePlaceholders())
             .replace(gamer.replacePlaceholders())
             .replace(Placeholders.forPlayerWithPAPI(player))
-            .replace(Placeholders.GENERIC_MESSAGE, event.getMessage())
+            .replace(Placeholders.GENERIC_MESSAGE, PlainTextComponentSerializer.plainText().serialize(event.message()))
             .apply(Config.CHAT_FORMAT.get());
 
         dungeon.broadcast(format);

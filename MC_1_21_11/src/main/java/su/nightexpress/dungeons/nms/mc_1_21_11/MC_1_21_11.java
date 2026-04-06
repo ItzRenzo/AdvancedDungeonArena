@@ -22,14 +22,15 @@ import net.minecraft.world.level.storage.TagValueOutput;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_21_R7.CraftWorld;
-import org.bukkit.craftbukkit.v1_21_R7.block.CraftBlock;
-import org.bukkit.craftbukkit.v1_21_R7.block.CraftBlockState;
-import org.bukkit.craftbukkit.v1_21_R7.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.v1_21_R7.entity.CraftEntityType;
-import org.bukkit.craftbukkit.v1_21_R7.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.block.CraftBlock;
+import org.bukkit.craftbukkit.block.CraftBlockState;
+import org.bukkit.craftbukkit.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.entity.CraftEntityType;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +74,23 @@ public class MC_1_21_11 implements DungeonNMS {
         ServerLevel level = ((CraftWorld) dungeon.getWorld()).getHandle();
 
         net.minecraft.world.entity.Mob mob = EntityCreator.createEntity(/*dungeon, faction, */type, level);
-        if (mob == null) return null;
+        if (mob == null) {
+            Entity spawned;
+            try {
+                spawned = dungeon.getWorld().spawnEntity(location, type);
+            }
+            catch (IllegalArgumentException ignored) {
+                return null;
+            }
+
+            if (!(spawned instanceof LivingEntity livingEntity)) {
+                spawned.remove();
+                return null;
+            }
+
+            function.accept(livingEntity);
+            return livingEntity;
+        }
 
         LivingEntity bukkitEntity = (LivingEntity) mob.getBukkitEntity();
 

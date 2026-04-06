@@ -1,4 +1,9 @@
 /.idea/
+/.gradle/
+**/.gradle/
+/**/build/
+!src/**/build/
+/build/
 **/pom.xml.versionsBackup
 **/target/
 !src/**/target/

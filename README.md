@@ -56,8 +56,14 @@
 
 # Compatibility
 - **Java 21** or higher.
-- **Spigot** or **Paper**.
-- **Server Version:** 1.21.4 / 1.21.5
+- **Paper**.
+- **Server Version:** 1.21.11
+
+# Build
+- **Gradle:** `./gradlew :Core:shadowJar` (or `gradlew.bat :Core:shadowJar` on Windows)
+- **Artifact:** `target/AdvancedDungeonArena-<version>.jar`
+- **BuildTools:** Not required.
+- **NMS:** Built with Paperweight in Gradle (no Spigot BuildTools pipeline).
 
 # Dependencies
 **REQUIRED:**

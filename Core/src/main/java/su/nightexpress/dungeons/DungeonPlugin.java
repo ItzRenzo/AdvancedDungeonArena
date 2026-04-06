@@ -1,6 +1,7 @@
 package su.nightexpress.dungeons;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import su.nightexpress.dungeons.api.dungeon.DungeonEntityBridge;
 import su.nightexpress.dungeons.command.impl.BaseCommands;
 import su.nightexpress.dungeons.command.impl.KitCommands;
@@ -25,10 +26,7 @@ import su.nightexpress.dungeons.kit.KitManager;
 import su.nightexpress.dungeons.mob.MobManager;
 import su.nightexpress.dungeons.mob.variant.MobVariantRegistry;
 import su.nightexpress.dungeons.nms.DungeonNMS;
-import su.nightexpress.dungeons.nms.mc_1_21_10.MC_1_21_10;
-import su.nightexpress.dungeons.nms.mc_1_21_11.MC_1_21_11;
-import su.nightexpress.dungeons.nms.mc_1_21_3.MC_1_21_3;
-import su.nightexpress.dungeons.nms.mc_1_21_8.MC_1_21_8;
+import su.nightexpress.dungeons.nms.paper.PaperDungeonNMS;
 import su.nightexpress.dungeons.registry.compat.BoardPluginRegistry;
 import su.nightexpress.dungeons.registry.compat.GodPluginRegistry;
 import su.nightexpress.dungeons.registry.level.LevelRegistry;
@@ -40,7 +38,7 @@ import su.nightexpress.nightcore.NightPlugin;
 import su.nightexpress.nightcore.commands.command.NightCommand;
 import su.nightexpress.nightcore.config.PluginDetails;
 import su.nightexpress.nightcore.util.Plugins;
-import su.nightexpress.nightcore.util.Version;
+import su.nightexpress.nightcore.util.bridge.Software;
 
 public class DungeonPlugin extends NightPlugin {
 
@@ -143,21 +141,44 @@ public class DungeonPlugin extends NightPlugin {
     }
 
     private boolean loadInternals() {
-        this.internals = switch (Version.getCurrent()) {
-            case MC_1_21_4 -> new MC_1_21_3();
-            case MC_1_21_8 -> new MC_1_21_8();
-            case MC_1_21_10 -> new MC_1_21_10();
-            case MC_1_21_11 -> new MC_1_21_11();
-            default -> null;
-        };
-
-        if (this.internals == null) {
-            this.error("Unsupported server version.");
+        String bukkitVersion = this.getServer().getBukkitVersion();
+        if (!this.isSupportedServerVersion(bukkitVersion)) {
+            this.error("Unsupported server version: " + bukkitVersion);
             this.getPluginManager().disablePlugin(this);
             return false;
         }
 
+        this.internals = this.loadVersionedInternals();
+        if (this.internals == null) {
+            this.warn("Version-specific NMS module not found, using Paper fallback internals.");
+            this.internals = new PaperDungeonNMS();
+        }
+
         return true;
+    }
+
+    private boolean isSupportedServerVersion(@NotNull String bukkitVersion) {
+        String minecraftVersion = bukkitVersion.split("-")[0];
+        return minecraftVersion.equals("1.21") || minecraftVersion.startsWith("1.21.");
+    }
+
+    @Nullable
+    private DungeonNMS loadVersionedInternals() {
+        try {
+            Class<?> clazz = Class.forName("su.nightexpress.dungeons.nms.mc_1_21_11.MC_1_21_11");
+            Object instance = clazz.getDeclaredConstructor().newInstance();
+            if (instance instanceof DungeonNMS dungeonNMS) {
+                this.info("Loaded full NMS internals for MC_1_21_11.");
+                return dungeonNMS;
+            }
+
+            this.warn("NMS internals class does not implement DungeonNMS: " + clazz.getName());
+            return null;
+        }
+        catch (Throwable throwable) {
+            this.warn("Failed to initialize version-specific NMS internals: " + throwable.getClass().getSimpleName() + ": " + throwable.getMessage());
+            return null;
+        }
     }
 
     private void loadEngine() {
