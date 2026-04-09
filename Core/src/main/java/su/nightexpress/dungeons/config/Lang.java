@@ -34,6 +34,8 @@ public class Lang implements LangContainer {
     public static final TextLocale COMMAND_SEND_DESC   = LangEntry.builder("Command.Send.Send").text("Send player to the dungeon.");
     public static final TextLocale COMMAND_WAND_DESC   = LangEntry.builder("Command.Wand.Desc").text("Get selection tool.");
     public static final TextLocale COMMAND_CREATE_DESC = LangEntry.builder("Command.Create.Desc").text("Create new dungeon from selection.");
+    public static final TextLocale COMMAND_CREATE_PARTY_DESC = LangEntry.builder("Command.CreateParty.Desc").text("Create a new party.");
+
 
     public static final TextLocale COMMAND_SET_PROTECTION_DESC  = LangEntry.builder("Command.SetProtection.Desc").text("Update dungeon's protection area.");
     public static final TextLocale COMMAND_SET_LOBBY_DESC       = LangEntry.builder("Command.SetLobby.Desc").text("Set dungeon's lobby position.");
@@ -96,6 +98,10 @@ public class Lang implements LangContainer {
 
     public static final MessageLocale ERROR_COMMAND_INVALID_STATE_ARGUMENT = LangEntry.builder("Error.Command.InvalidArgument.State").chatMessage(
         GRAY.wrap(SOFT_RED.wrap(GENERIC_VALUE) + " is not a valid spot state!"));
+
+    public static final MessageLocale PARTY_ERROR_ALREADY_IN_PARTY = LangEntry.builder("Party.Error.AlreadyInParty").chatMessage(
+            SOFT_RED.wrap("You are already in a party!")
+    );
 
 
 
@@ -580,6 +586,10 @@ public class Lang implements LangContainer {
             KIT_EFFECTS
         )
         .build();
+
+    public static final MessageLocale PARTY_CREATED = LangEntry.builder("Party.Created").chatMessage(
+            GRAY.wrap("You have created a new party. Use " + SOFT_YELLOW.wrap("/dungeon invite <player>") + " to invite players.")
+    );
 
     public static final IconLocale UI_CONFIRMATION_KIT_PURCHASE = LangEntry.iconBuilder("UI.Confirmation.Kit.Purchase")
         .name("Kit Info")

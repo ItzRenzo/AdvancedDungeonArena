@@ -51,6 +51,9 @@ public class Perms {
     public static final UniPermission COMMAND_SPOT       = new UniPermission(PREFIX + "command.spot");
     public static final UniPermission COMMAND_KIT        = new UniPermission(PREFIX + "command.kit");
 
+    public static final UniPermission COMMAND_CREATE_PARTY = new UniPermission(PREFIX + "command.createparty");
+
+
     static {
         PLUGIN.addChildren(COMMAND, BYPASS, CREATOR, DUNGEON_ALL, KIT_ALL);
 
@@ -85,7 +88,8 @@ public class Perms {
             COMMAND_SEND,
             COMMAND_LEAVE,
             COMMAND_BROWSE,
-            COMMAND_BROWSE_OTHERS
+            COMMAND_BROWSE_OTHERS,
+            COMMAND_CREATE_PARTY
         );
     }
 }

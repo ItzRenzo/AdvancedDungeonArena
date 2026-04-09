@@ -9,6 +9,7 @@ import su.nightexpress.dungeons.command.CommandArguments;
 import su.nightexpress.dungeons.command.CommandFlags;
 import su.nightexpress.dungeons.config.Lang;
 import su.nightexpress.dungeons.config.Perms;
+import su.nightexpress.dungeons.dungeon.Party.PartyManager;
 import su.nightexpress.dungeons.dungeon.config.DungeonConfig;
 import su.nightexpress.dungeons.dungeon.game.DungeonInstance;
 import su.nightexpress.dungeons.dungeon.level.Level;
@@ -53,6 +54,14 @@ public class BaseCommands {
             .withArguments(Arguments.player(CommandArguments.PLAYER).permission(Perms.COMMAND_BROWSE_OTHERS).optional())
             .executes((context, arguments) -> browseDungeons(plugin, context, arguments))
         );
+
+        root.branch(Commands.literal("createparty")
+                .playerOnly()
+                .description(Lang.COMMAND_CREATE_PARTY_DESC)
+                .permission(Perms.COMMAND_CREATE_PARTY)
+                .executes((context, arguments) -> createParty(plugin, context, arguments))
+        );
+
 
         root.branch(Commands.literal(Placeholders.ALIAS_JOIN)
             .description(Lang.COMMAND_JOIN_DESC)
@@ -240,6 +249,25 @@ public class BaseCommands {
         Player player = context.isPlayer() ? context.getPlayerOrThrow() : arguments.getPlayer(CommandArguments.PLAYER);
         DungeonConfig config = arguments.get(CommandArguments.DUNGEON, DungeonConfig.class);
         plugin.getDungeonManager().prepareForInstance(player, config.getInstance());
+        return true;
+    }
+
+
+    public static boolean createParty(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow(); // safe — .playerOnly() on the branch guards this
+
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (partyManager.hasParty(player.getUniqueId())) {
+            context.send(Lang.PARTY_ERROR_ALREADY_IN_PARTY);
+            return false;
+        }
+
+        partyManager.createParty(player.getUniqueId());
+        context.send(Lang.PARTY_CREATED);
+
+        partyManager.sendPartyInfo(player.getUniqueId());
+
         return true;
     }
 

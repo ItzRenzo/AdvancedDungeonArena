@@ -13,6 +13,7 @@ import su.nightexpress.dungeons.config.Perms;
 import su.nightexpress.dungeons.data.DataHandler;
 import su.nightexpress.dungeons.dungeon.DungeonManager;
 import su.nightexpress.dungeons.dungeon.DungeonSetup;
+import su.nightexpress.dungeons.dungeon.Party.PartyManager;
 import su.nightexpress.dungeons.dungeon.criteria.registry.CriteriaRegistry;
 import su.nightexpress.dungeons.dungeon.scale.ScaleBaseRegistry;
 import su.nightexpress.dungeons.dungeon.script.action.ActionRegistry;
@@ -52,6 +53,8 @@ public class DungeonPlugin extends NightPlugin {
     private DungeonSetup dungeonSetup;
 
     private DungeonNMS internals;
+
+    private PartyManager partyManager;
 
     @Override
     @NotNull
@@ -97,6 +100,8 @@ public class DungeonPlugin extends NightPlugin {
 
         this.dungeonSetup = new DungeonSetup(this);
         this.dungeonSetup.setup();
+
+        this.partyManager = new PartyManager();
 
         this.loadCommands();
 
@@ -245,4 +250,7 @@ public class DungeonPlugin extends NightPlugin {
     public DungeonNMS getInternals() {
         return this.internals;
     }
+
+    @NotNull
+    public PartyManager getPartyManager() { return this.partyManager; }
 }
