@@ -559,6 +559,15 @@ public class DungeonInstance implements Dungeon {
             return false;
         }
 
+        if (this.players.size() >= 1) { // someone is already in the dungeon
+            DungeonGamer firstPlayer = this.players.values().iterator().next();
+            if (plugin.getSoloManager().isSolo(firstPlayer.getPlayer().getUniqueId())) {
+                player.sendMessage(ChatColor.RED + "This dungeon is currently in solo mode. You cannot join.");
+                return false; // stops the join entirely
+            }
+        }
+
+
         if (!force) {
             if (this.config.features().isPermissionRequired() && !this.hasPermission(player)) {
                 if (notify) this.sendMessage(player, Lang.DUNGEON_ENTER_ERROR_PERMISSION, replacer -> replacer.replace(this.replacePlaceholders()));
@@ -608,6 +617,7 @@ public class DungeonInstance implements Dungeon {
     public void handlePlayerJoin(@NotNull DungeonPlayer dungeonPlayer, boolean forced) {
         Player player = dungeonPlayer.getPlayer();
         DungeonGamer gamer = (DungeonGamer) dungeonPlayer;
+
         Kit kit = gamer.getKit();
 
         // Save the player inventory, effects, game modes, etc. before teleporting to the arena.

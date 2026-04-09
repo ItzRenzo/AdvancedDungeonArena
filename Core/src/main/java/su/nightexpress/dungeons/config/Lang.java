@@ -78,6 +78,11 @@ public class Lang implements LangContainer {
     public static final TextLocale COMMAND_STOP_DESC  = LangEntry.builder("Command.Stop.Desc").text("Force stop the dungeon.");
     public static final TextLocale COMMAND_START_DESC = LangEntry.builder("Command.Start.Desc").text("Force start the dungeon.");
 
+    public static final TextLocale COMMAND_SOLOMODE_DESC  = LangEntry.builder("Command.solo.Desc").text("Allows Player To Create Solo Raids");
+
+
+
+
     public static final MessageLocale ERROR_COMMAND_INVALID_SELECTION_ARGUMENT = LangEntry.builder("Command.Syntax.InvalidSelectionType").chatMessage(
         GRAY.wrap(SOFT_RED.wrap(GENERIC_INPUT) + " is not a valid type!"));
 
@@ -304,6 +309,10 @@ public class Lang implements LangContainer {
 
     public static final MessageLocale DUNGEON_ENTER_ERROR_ENDING = LangEntry.builder("Dungeon.Enter.Error.Ending").chatMessage(
         GRAY.wrap("Dungeon " + SOFT_YELLOW.wrap(DUNGEON_NAME) + " is being reset. Try again in a few moments.")
+    );
+
+    public static final MessageLocale DUNGEON_ENTER_ERROR_SOLO_MODE = LangEntry.builder("Dungeon.Enter.Error.Ending").chatMessage(
+            GRAY.wrap("Player enabled solo mode")
     );
 
     public static final MessageLocale DUNGEON_ENTER_ERROR_NO_KIT = LangEntry.builder("Dungeon.Enter.Error.NoKit").chatMessage(

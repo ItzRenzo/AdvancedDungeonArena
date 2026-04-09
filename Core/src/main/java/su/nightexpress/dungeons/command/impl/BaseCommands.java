@@ -13,6 +13,7 @@ import su.nightexpress.dungeons.dungeon.Party.PartyManager;
 import su.nightexpress.dungeons.dungeon.config.DungeonConfig;
 import su.nightexpress.dungeons.dungeon.game.DungeonInstance;
 import su.nightexpress.dungeons.dungeon.level.Level;
+import su.nightexpress.dungeons.dungeon.player.SoloManager;
 import su.nightexpress.dungeons.dungeon.spot.Spot;
 import su.nightexpress.dungeons.dungeon.spot.SpotState;
 import su.nightexpress.dungeons.dungeon.stage.Stage;
@@ -144,6 +145,15 @@ public class BaseCommands {
             .permission(Perms.COMMAND_STOP)
             .withArguments(CommandArguments.forDungeon(plugin).optional())
             .executes((context, arguments) -> stopGame(plugin, context, arguments))
+        );
+
+
+        root.branch(Commands.literal("solomode")
+                .playerOnly()
+                .description(Lang.COMMAND_SOLOMODE_DESC)
+                .permission(Perms.COMMAND_SOLOMODE)
+                .withArguments(CommandArguments.forDungeon(plugin).optional())
+                .executes((context, arguments) -> triggerSoloMode(plugin, context, arguments))
         );
     }
 
@@ -352,6 +362,26 @@ public class BaseCommands {
 
         dungeon.stop();
         context.send(Lang.DUNGEON_ADMIN_STOP, replacer -> replacer.replace(dungeon.replacePlaceholders()));
+        return true;
+    }
+
+
+    private static boolean triggerSoloMode(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+
+        if (plugin.getDungeonManager().isPlaying(player.getUniqueId())) {
+            player.sendMessage("You're ingame, you can't toggle solo mode");
+            return false;
+        }
+
+
+        SoloManager soloManager = plugin.getSoloManager();
+        soloManager.toggleSoloOption(player.getUniqueId());
+
+        player.sendMessage(soloManager.isSolo(player.getUniqueId())
+                ? "SOLO MODE ON"
+                : "SOLO MODE OFF");
+
         return true;
     }
 }

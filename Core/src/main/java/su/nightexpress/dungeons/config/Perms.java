@@ -37,6 +37,8 @@ public class Perms {
     public static final UniPermission COMMAND_STOP           = new UniPermission(PREFIX + "command.stop");
     public static final UniPermission COMMAND_START          = new UniPermission(PREFIX + "command.start");
 
+    public static final UniPermission COMMAND_SOLOMODE           = new UniPermission(PREFIX + "command.solomode");
+
     public static final UniPermission COMMAND_JOIN          = new UniPermission(PREFIX + "command.join");
     public static final UniPermission COMMAND_SEND          = new UniPermission(PREFIX + "command.send");
     public static final UniPermission COMMAND_LEAVE         = new UniPermission(PREFIX + "command.leave");
