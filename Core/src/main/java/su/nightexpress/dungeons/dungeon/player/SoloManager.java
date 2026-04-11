@@ -32,6 +32,10 @@ public class SoloManager {
         }
     }
 
+    public void clearOnLeave(UUID playerId) {
+        makePlayerSoloOptionOff(playerId);
+    }
+
     public void checkPlayerTempSettings(Player player) {
         if (isSolo(player.getUniqueId())) {
             player.sendMessage("Your solo option is on. You can turn it off with /soloMode");

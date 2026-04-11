@@ -249,19 +249,19 @@
 
 
             // process queue first — let waiting players in if there's room
-            if (!joinQueue.isEmpty()) {
+            if (!joinQueue.isEmpty() && !hasSoloPlayer()) {
                 int maxPlayers = this.config.gameSettings().getMaxPlayers();
                 while (!joinQueue.isEmpty()) {
                     if (maxPlayers > 0 && this.countPlayers() >= maxPlayers) break;
 
                     QueueEntry entry = joinQueue.poll();
-
                     if (!entry.player().isOnline()) continue;
                     if (this.manager.isPlaying(entry.player())) continue;
 
                     this.manager.enterInstance(entry.player(), this, entry.kit(), false);
                 }
             }
+
 
 
 
@@ -584,11 +584,16 @@
                 if (notify) this.sendMessage(player, Lang.DUNGEON_ENTER_ERROR_ENDING, replacer -> replacer.replace(this.replacePlaceholders()));
                 return false;
             }
+
+
     
             if (this.players.size() >= 1) { // someone is already in the dungeon
                 DungeonGamer firstPlayer = this.players.values().iterator().next();
                 if (plugin.getSoloManager().isSolo(firstPlayer.getPlayer().getUniqueId())) {
-                    player.sendMessage(ChatColor.RED + "This dungeon is currently in solo mode. You cannot join.");
+                    if (!this.isInQueue(player)) {
+                        this.addToQueue(player, null);
+                        player.sendMessage("§eThis dungeon has a solo player, you have been added to the queue.");
+                    }
                     return false; // stops the join entirely
                 }
             }
@@ -1471,5 +1476,11 @@
 
         public boolean removeFromQueue(@NotNull Player player) {
             return joinQueue.removeIf(e -> e.player().getUniqueId().equals(player.getUniqueId()));
+        }
+
+        public boolean hasSoloPlayer() {
+            if (this.players.isEmpty()) return false;
+            DungeonGamer firstPlayer = this.players.values().iterator().next();
+            return plugin.getSoloManager().isSolo(firstPlayer.getPlayer().getUniqueId());
         }
     }
