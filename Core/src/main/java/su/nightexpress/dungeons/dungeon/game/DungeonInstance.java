@@ -1423,7 +1423,7 @@
             return this.taskProgress;
         }
 
-        // TODO: DO QUEUE HERE
+        // Handles the changing of queues
         private void moveToNextInQueue() {
             System.out.println("GAME ENDED: MOVE TO NEXT QUEUE");
 
@@ -1432,11 +1432,19 @@
             while (!joinQueue.isEmpty()) {
                 if (maxPlayers > 0 && this.countPlayers() >= maxPlayers) break;
 
-                QueueEntry entry = joinQueue.poll();
+                QueueEntry entry = joinQueue.peek();
 
-                if (!entry.player().isOnline()) continue;
+                if (!entry.player().isOnline()) { joinQueue.poll(); continue; }
+                if (this.manager.isPlaying(entry.player())) { joinQueue.poll(); continue; }
 
+                // solo player only enters if dungeon is empty
+                if (plugin.getSoloManager().isSolo(entry.player().getUniqueId()) && this.countPlayers() > 0) break;
+
+                joinQueue.poll();
                 this.manager.enterInstance(entry.player(), this, entry.kit(), false);
+
+                // if we just let a solo player in, stop immediately
+                if (plugin.getSoloManager().isSolo(entry.player().getUniqueId())) break;
             }
         }
 
