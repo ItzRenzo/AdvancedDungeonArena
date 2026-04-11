@@ -105,7 +105,7 @@ public class DungeonManager extends AbstractManager<DungeonPlugin> {
             return;
         }
 
-        DungeonInstance instance = new DungeonInstance(this.plugin, dungeonConfig);
+        DungeonInstance instance = new DungeonInstance(this.plugin, dungeonConfig, this);
         instance.activate();
         dungeonConfig.setInstance(instance);
         dungeonConfig.validate();
@@ -569,4 +569,17 @@ public class DungeonManager extends AbstractManager<DungeonPlugin> {
 
         return true;
     }
+
+    public boolean removeFromQueue(@NotNull Player player) {
+        return this.getInstances().stream()
+                .anyMatch(instance -> instance.removeFromQueue(player));
+    }
+
+    public Collection<DungeonGamer> getGamersInInstance(DungeonInstance instance) {
+        return this.playerByIdMap.values().stream()
+                .filter(gamer -> gamer.getDungeon() == instance)
+                .toList();
+    }
+
+
 }

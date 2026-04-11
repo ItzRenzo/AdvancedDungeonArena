@@ -155,6 +155,19 @@ public class BaseCommands {
                 .withArguments(CommandArguments.forDungeon(plugin).optional())
                 .executes((context, arguments) -> triggerSoloMode(plugin, context, arguments))
         );
+
+        root.branch(Commands.literal("queue")
+                .playerOnly()
+                .permission("dungeons.command.queue")
+                .withArguments(CommandArguments.forDungeon(plugin))
+                .executes((context, arguments) -> joinQueue(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("leavequeue")
+                .playerOnly()
+                .permission("dungeons.command.queue")
+                .executes((context, arguments) -> leaveQueue(plugin, context, arguments))
+        );
     }
 
     private static boolean getWand(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
@@ -382,6 +395,46 @@ public class BaseCommands {
                 ? "SOLO MODE ON"
                 : "SOLO MODE OFF");
 
+        return true;
+    }
+
+    private static boolean joinQueue(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+
+        if (plugin.getDungeonManager().isPlaying(player)) {
+            player.sendMessage("§cYou are already in a dungeon.");
+            return false;
+        }
+
+        DungeonConfig config = arguments.get(CommandArguments.DUNGEON, DungeonConfig.class);
+        DungeonInstance instance = config.getInstance();
+
+        if (!instance.isActive()) {
+            player.sendMessage("§cThat dungeon is not active.");
+            return false;
+        }
+
+        if (instance.isInQueue(player)) {
+            player.sendMessage("§cYou are already queued for this dungeon.");
+            return false;
+        }
+
+        instance.addToQueue(player, null);
+        player.sendMessage("§aYou joined the queue! Position: §f#" + instance.getQueuePosition(player));
+        return true;
+    }
+
+    private static boolean leaveQueue(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+
+        boolean removed = plugin.getDungeonManager().removeFromQueue(player);
+
+        if (!removed) {
+            player.sendMessage("§cYou are not in any queue.");
+            return false;
+        }
+
+        player.sendMessage("§aYou left the queue.");
         return true;
     }
 }
