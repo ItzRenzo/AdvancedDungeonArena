@@ -254,10 +254,15 @@
                 while (!joinQueue.isEmpty()) {
                     if (maxPlayers > 0 && this.countPlayers() >= maxPlayers) break;
 
-                    QueueEntry entry = joinQueue.poll();
-                    if (!entry.player().isOnline()) continue;
-                    if (this.manager.isPlaying(entry.player())) continue;
+                    QueueEntry entry = joinQueue.peek(); // peek first
 
+                    if (!entry.player().isOnline()) { joinQueue.poll(); continue; }
+                    if (this.manager.isPlaying(entry.player())) { joinQueue.poll(); continue; }
+
+                    // if solo player and dungeon has players, stop processing entirely
+                    if (plugin.getSoloManager().isSolo(entry.player().getUniqueId()) && this.countPlayers() > 0) break;
+
+                    joinQueue.poll(); // only poll when we're actually going to process
                     this.manager.enterInstance(entry.player(), this, entry.kit(), false);
                 }
             }
