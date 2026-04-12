@@ -9,6 +9,7 @@ import su.nightexpress.dungeons.command.CommandArguments;
 import su.nightexpress.dungeons.command.CommandFlags;
 import su.nightexpress.dungeons.config.Lang;
 import su.nightexpress.dungeons.config.Perms;
+import su.nightexpress.dungeons.dungeon.Party.Party;
 import su.nightexpress.dungeons.dungeon.Party.PartyManager;
 import su.nightexpress.dungeons.dungeon.config.DungeonConfig;
 import su.nightexpress.dungeons.dungeon.game.DungeonInstance;
@@ -25,6 +26,7 @@ import su.nightexpress.nightcore.commands.builder.HubNodeBuilder;
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
+import java.util.UUID;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -148,13 +150,13 @@ public class BaseCommands {
         );
 
 
-        root.branch(Commands.literal("solomode")
-                .playerOnly()
-                .description(Lang.COMMAND_SOLOMODE_DESC)
-                .permission(Perms.COMMAND_SOLOMODE)
-                .withArguments(CommandArguments.forDungeon(plugin).optional())
-                .executes((context, arguments) -> triggerSoloMode(plugin, context, arguments))
-        );
+        //root.branch(Commands.literal("solomode")
+                //.playerOnly()
+                //.description(Lang.COMMAND_SOLOMODE_DESC)
+                //.permission(Perms.COMMAND_SOLOMODE)
+                //.withArguments(CommandArguments.forDungeon(plugin).optional())
+                //.executes((context, arguments) -> triggerSoloMode(plugin, context, arguments))
+        //);
 
         root.branch(Commands.literal("queue")
                 .playerOnly()
@@ -176,6 +178,50 @@ public class BaseCommands {
                 .executes((context, arguments) -> leaveQueue(plugin, context, arguments))
         );
 
+
+        root.branch(Commands.literal("invite")
+                .playerOnly()
+                .permission("dungeons.command.party")
+                .withArguments(Arguments.player(CommandArguments.PLAYER))
+                .executes((context, arguments) -> invitePlayer(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("accept")
+                .playerOnly()
+                .permission("dungeons.command.party")
+                .executes((context, arguments) -> acceptInvite(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("decline")
+                .playerOnly()
+                .permission("dungeons.command.party")
+                .executes((context, arguments) -> declineInvite(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("partyleave")
+                .playerOnly()
+                .permission("dungeons.command.party")
+                .executes((context, arguments) -> leaveParty(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("kick")
+                .playerOnly()
+                .permission("dungeons.command.party")
+                .withArguments(Arguments.player(CommandArguments.PLAYER))
+                .executes((context, arguments) -> kickMember(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("ready")
+                .playerOnly()
+                .permission("dungeons.command.party")
+                .executes((context, arguments) -> toggleReady(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("partyinfo")
+                .playerOnly()
+                .permission("dungeons.command.party")
+                .executes((context, arguments) -> partyInfo(plugin, context, arguments))
+        );
 
     }
 
@@ -407,31 +453,6 @@ public class BaseCommands {
         return true;
     }
 
-    private static boolean joinQueue(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
-
-        if (plugin.getDungeonManager().isPlaying(player)) {
-            player.sendMessage("§cYou are already in a dungeon.");
-            return false;
-        }
-
-        DungeonConfig config = arguments.get(CommandArguments.DUNGEON, DungeonConfig.class);
-        DungeonInstance instance = config.getInstance();
-
-        if (!instance.isActive()) {
-            player.sendMessage("§cThat dungeon is not active.");
-            return false;
-        }
-
-        if (instance.isInQueue(player)) {
-            player.sendMessage("§cYou are already queued for this dungeon.");
-            return false;
-        }
-
-        instance.addToQueue(player, null);
-        player.sendMessage("§aYou joined the queue! Position: §f#" + instance.getQueuePosition(player));
-        return true;
-    }
 
     private static boolean joinSoloQueue(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
         Player player = context.getPlayerOrThrow();
@@ -440,6 +461,13 @@ public class BaseCommands {
             player.sendMessage("§cYou are already in a dungeon.");
             return false;
         }
+
+        PartyManager partyManager = plugin.getPartyManager();
+        if (partyManager.hasParty(player.getUniqueId())) {
+            player.sendMessage("§cYou are in a party");
+            return false;
+        }
+
 
         DungeonConfig config = arguments.get(CommandArguments.DUNGEON, DungeonConfig.class);
         DungeonInstance instance = config.getInstance();
@@ -471,6 +499,223 @@ public class BaseCommands {
         }
 
         player.sendMessage("§aYou left the queue.");
+        return true;
+    }
+
+    private static boolean joinQueue(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (plugin.getDungeonManager().isPlaying(player)) {
+            player.sendMessage("§cYou are already in a dungeon.");
+            return false;
+        }
+
+        DungeonConfig config = arguments.get(CommandArguments.DUNGEON, DungeonConfig.class);
+        DungeonInstance instance = config.getInstance();
+
+        if (!instance.isActive()) {
+            player.sendMessage("§cThat dungeon is not active.");
+            return false;
+        }
+
+        if (partyManager.hasParty(player.getUniqueId())) {
+            Party party = partyManager.getPartyOf(player.getUniqueId());
+
+            if (!party.isLeader(player.getUniqueId())) {
+                player.sendMessage("§cOnly the party leader can queue.");
+                return false;
+            }
+
+
+
+            for (UUID memberId : party.getAllMembers()) {
+                if (plugin.getDungeonManager().isPlaying(memberId)) {
+                    player.sendMessage("§cA party member is already in a dungeon.");
+                    return false;
+                }
+            }
+
+            partyManager.setPendingQueue(player.getUniqueId(), config.getId());
+            partyManager.resetReady(player.getUniqueId());
+
+
+            // Party leader auto ready since he started it
+            if (party.isLeader(player.getUniqueId())) {
+                toggleReady(plugin, context, arguments);
+            }
+
+            player.sendMessage("§aReady request sent to your party!");
+            partyManager.broadcastToParty(party, "§eLeader wants to queue for §f" + config.getId() + "§e. Type §f/dungeon ready §eto confirm!");
+            return true;
+        }
+
+        if (instance.isInQueue(player)) {
+            player.sendMessage("§cYou are already queued for this dungeon.");
+            return false;
+        }
+
+        instance.addToQueue(player, null);
+        player.sendMessage("§aYou joined the queue! Position: §f#" + instance.getQueuePosition(player));
+        return true;
+    }
+
+    private static boolean invitePlayer(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (!partyManager.hasParty(player.getUniqueId())) {
+            player.sendMessage("§cYou are not in a party.");
+            return false;
+        }
+
+        Party party = partyManager.getPartyOf(player.getUniqueId());
+        if (!party.isLeader(player.getUniqueId())) {
+            player.sendMessage("§cOnly the party leader can invite players.");
+            return false;
+        }
+
+        Player target = arguments.getPlayer(CommandArguments.PLAYER);
+
+        if (target.getUniqueId().equals(player.getUniqueId())) {
+            player.sendMessage("§cYou cannot invite yourself.");
+            return false;
+        }
+
+        if (partyManager.hasParty(target.getUniqueId())) {
+            player.sendMessage("§cThat player is already in a party.");
+            return false;
+        }
+
+        if (plugin.getDungeonManager().isPlaying(target)) {
+            player.sendMessage("§cThat player is currently in a dungeon.");
+            return false;
+        }
+
+        if (party.hasPendingInvite(target.getUniqueId())) {
+            player.sendMessage("§cThat player already has a pending invite.");
+            return false;
+        }
+
+        partyManager.invitePlayer(player.getUniqueId(), target.getUniqueId());
+        player.sendMessage("§aInvite sent to §f" + target.getName() + "§a.");
+        return true;
+    }
+
+    private static boolean acceptInvite(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (!partyManager.hasPendingInvite(player.getUniqueId())) {
+            player.sendMessage("§cYou have no pending party invites.");
+            return false;
+        }
+
+        if (partyManager.hasParty(player.getUniqueId())) {
+            player.sendMessage("§cYou are already in a party.");
+            return false;
+        }
+
+        partyManager.acceptInvite(player.getUniqueId());
+        return true;
+    }
+
+    private static boolean declineInvite(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (!partyManager.hasPendingInvite(player.getUniqueId())) {
+            player.sendMessage("§cYou have no pending party invites.");
+            return false;
+        }
+
+        partyManager.declineInvite(player.getUniqueId());
+        return true;
+    }
+
+    private static boolean leaveParty(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (!partyManager.hasParty(player.getUniqueId())) {
+            player.sendMessage("§cYou are not in a party.");
+            return false;
+        }
+
+        partyManager.leaveParty(player.getUniqueId());
+        return true;
+    }
+
+    private static boolean kickMember(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (!partyManager.hasParty(player.getUniqueId())) {
+            player.sendMessage("§cYou are not in a party.");
+            return false;
+        }
+
+        Party party = partyManager.getPartyOf(player.getUniqueId());
+        if (!party.isLeader(player.getUniqueId())) {
+            player.sendMessage("§cOnly the party leader can kick members.");
+            return false;
+        }
+
+        Player target = arguments.getPlayer(CommandArguments.PLAYER);
+
+        if (!party.isMember(target.getUniqueId())) {
+            player.sendMessage("§cThat player is not in your party.");
+            return false;
+        }
+
+        if (party.isLeader(target.getUniqueId())) {
+            player.sendMessage("§cYou cannot kick yourself.");
+            return false;
+        }
+
+        partyManager.kickMember(player.getUniqueId(), target.getUniqueId());
+        return true;
+    }
+
+    private static boolean toggleReady(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (!partyManager.hasParty(player.getUniqueId())) {
+            player.sendMessage("§cYou are not in a party.");
+            return false;
+        }
+
+        partyManager.toggleReady(player.getUniqueId());
+
+        Party party = partyManager.getPartyOf(player.getUniqueId());
+
+        if (partyManager.isPartyReady(party.getLeader())) {
+            String dungeonId = partyManager.getPendingQueue(party.getLeader());
+            if (dungeonId != null) {
+                DungeonInstance instance = plugin.getDungeonManager().getInstanceById(dungeonId);
+                if (instance != null) {
+                    partyManager.broadcastToParty(party, "§aAll members ready! Joining queue for §f" + dungeonId + "§a.");
+                    instance.addPartyToQueue(party, null);
+                    partyManager.clearPendingQueue(party.getLeader());
+                    partyManager.resetReady(party.getLeader());
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean partyInfo(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (!partyManager.hasParty(player.getUniqueId())) {
+            player.sendMessage("§cYou are not in a party.");
+            return false;
+        }
+
+        partyManager.sendPartyInfo(player.getUniqueId());
         return true;
     }
 

@@ -22,6 +22,7 @@
     import su.nightexpress.dungeons.config.Lang;
     import su.nightexpress.dungeons.config.Perms;
     import su.nightexpress.dungeons.dungeon.DungeonManager;
+    import su.nightexpress.dungeons.dungeon.Party.Party;
     import su.nightexpress.dungeons.dungeon.config.DungeonConfig;
     import su.nightexpress.dungeons.dungeon.criteria.registry.mob.MobCriterias;
     import su.nightexpress.dungeons.dungeon.event.DungeonEventReceiver;
@@ -104,7 +105,29 @@
 
         private final Queue<QueueEntry> joinQueue = new LinkedList<>();
 
-        private record QueueEntry(Player player, Kit kit) {}
+        private record QueueEntry(List<Player> players, Kit kit) {
+            static QueueEntry ofPlayer(Player player, Kit kit) {
+                List<Player> list = new ArrayList<>();
+                list.add(player);
+                return new QueueEntry(list, kit);
+            }
+
+            static QueueEntry ofParty(Party party, Kit kit) {
+                List<Player> members = party.getAllMembers().stream()
+                        .map(Bukkit::getPlayer)
+                        .filter(p -> p != null)
+                        .collect(Collectors.toList());
+                return new QueueEntry(members, kit);
+            }
+
+            boolean isSolo() {
+                return players.size() == 1;
+            }
+
+            Player firstPlayer() {
+                return players.get(0);
+            }
+        }
     
         public DungeonInstance(@NotNull DungeonPlugin plugin, @NotNull DungeonConfig config, @NotNull DungeonManager manager) {
             this.plugin = plugin;
@@ -244,84 +267,87 @@
             this.getPlayers().forEach(DungeonGamer::tick);
             this.showStatus();
         }
-    
+
         public void tickLobby() {
-
-
-            // process queue first — let waiting players in if there's room
             if (!joinQueue.isEmpty() && !hasSoloPlayer()) {
                 int maxPlayers = this.config.gameSettings().getMaxPlayers();
+
                 while (!joinQueue.isEmpty()) {
-                    if (maxPlayers > 0 && this.countPlayers() >= maxPlayers) break;
+                    QueueEntry entry = joinQueue.peek();
 
-                    QueueEntry entry = joinQueue.peek(); // peek first
+                    // remove offline players from entry
+                    entry.players().removeIf(p -> !p.isOnline());
+                    if (entry.players().isEmpty()) { joinQueue.poll(); continue; }
 
-                    if (!entry.player().isOnline()) { joinQueue.poll(); continue; }
-                    if (this.manager.isPlaying(entry.player())) { joinQueue.poll(); continue; }
+                    // check if fits
+                    if (maxPlayers > 0 && this.countPlayers() + entry.players().size() > maxPlayers) break;
 
-                    // if solo player and dungeon has players, stop processing entirely
-                    if (plugin.getSoloManager().isSolo(entry.player().getUniqueId()) && this.countPlayers() > 0) break;
+                    // solo check
+                    boolean entrySolo = entry.isSolo() &&
+                            plugin.getSoloManager().isSolo(entry.firstPlayer().getUniqueId());
 
-                    joinQueue.poll(); // only poll when we're actually going to process
-                    this.manager.enterInstance(entry.player(), this, entry.kit(), false);
+                    if (entrySolo && this.countPlayers() > 0) break;
+
+                    joinQueue.poll();
+                    for (Player p : entry.players()) {
+                        if (this.manager.isPlaying(p)) continue;
+                        this.manager.enterInstance(p, this, entry.kit(), false);
+                    }
+
+                    if (entrySolo) break;
                 }
             }
 
-
-
-
             boolean readyToStart = this.isReadyToStart();
-    
+
             if (this.state == GameState.WAITING) {
                 if (readyToStart) {
                     this.state = GameState.READY;
-    
+
                     if (this.config.gameSettings().isStartAnnouncement()) {
                         Players.getOnline().forEach(player -> {
                             if (this.plugin.getDungeonManager().isPlaying(player)) return;
                             if (!this.hasPermission(player)) return;
-    
+
                             Lang.DUNGEON_ANNOUNCE_START.message().send(player, replacer -> replacer
-                                .replace(this.replacePlaceholders())
-                                .replace(Placeholders.GENERIC_TIME, this.countdown));
+                                    .replace(this.replacePlaceholders())
+                                    .replace(Placeholders.GENERIC_TIME, this.countdown));
                         });
                     }
                 }
-    
+
                 return;
             }
-    
+
             if (!readyToStart) {
                 this.state = GameState.WAITING;
                 this.setCountdown(this.config.gameSettings().getLobbyTime());
-                // this.updateSigns();
                 return;
             }
-    
+
             Set<DungeonGamer> players = this.getPlayers();
             boolean allReady = players.stream().allMatch(DungeonPlayer::isReady);
-    
-            // Drop countdown timer to a specific value when all players are ready to fight.
+
             int dropTo = Config.DUNGEON_LOBBY_DROP_TIMER.get();
             if (dropTo > 0 && this.countdown > dropTo && allReady) {
                 this.setCountdown(dropTo);
             }
-    
+
             if (this.countdown <= 0) {
                 this.holdChunks();
-    
+
                 this.state = GameState.INGAME;
                 this.setLevel(this.config.getStartLevel());
                 this.setStage(this.config.getStartStage());
                 players.forEach(this::spawnPlayer);
                 this.countdown = -1;
                 this.setTimeLeft(this.config.gameSettings().hasTimeleft() ? this.config.gameSettings().getTimeleft() * 60L : -1L);
-    
+
                 DungeonStartedEvent event = new DungeonStartedEvent(this);
                 this.plugin.getPluginManager().callEvent(event);
                 return;
             }
-    
+
             this.countdown--;
         }
     
@@ -1430,21 +1456,25 @@
             int maxPlayers = this.config.gameSettings().getMaxPlayers();
 
             while (!joinQueue.isEmpty()) {
-                if (maxPlayers > 0 && this.countPlayers() >= maxPlayers) break;
-
                 QueueEntry entry = joinQueue.peek();
 
-                if (!entry.player().isOnline()) { joinQueue.poll(); continue; }
-                if (this.manager.isPlaying(entry.player())) { joinQueue.poll(); continue; }
+                entry.players().removeIf(p -> !p.isOnline());
+                if (entry.players().isEmpty()) { joinQueue.poll(); continue; }
 
-                // solo player only enters if dungeon is empty
-                if (plugin.getSoloManager().isSolo(entry.player().getUniqueId()) && this.countPlayers() > 0) break;
+                if (maxPlayers > 0 && this.countPlayers() + entry.players().size() > maxPlayers) break;
+
+                boolean entrySolo = entry.isSolo() &&
+                        plugin.getSoloManager().isSolo(entry.firstPlayer().getUniqueId());
+
+                if (entrySolo && this.countPlayers() > 0) break;
 
                 joinQueue.poll();
-                this.manager.enterInstance(entry.player(), this, entry.kit(), false);
+                for (Player p : entry.players()) {
+                    if (this.manager.isPlaying(p)) continue;
+                    this.manager.enterInstance(p, this, entry.kit(), false);
+                }
 
-                // if we just let a solo player in, stop immediately
-                if (plugin.getSoloManager().isSolo(entry.player().getUniqueId())) break;
+                if (entrySolo) break;
             }
         }
 
@@ -1471,24 +1501,44 @@
         }
 
         public boolean isInQueue(@NotNull Player player) {
-            return joinQueue.stream().anyMatch(e -> e.player().getUniqueId().equals(player.getUniqueId()));
+            return joinQueue.stream().anyMatch(e -> e.players().stream()
+                    .anyMatch(p -> p.getUniqueId().equals(player.getUniqueId())));
+        }
+
+        public boolean isInQueue(@NotNull UUID playerId) {
+            return joinQueue.stream().anyMatch(e -> e.players().stream()
+                    .anyMatch(p -> p.getUniqueId().equals(playerId)));
         }
 
         public void addToQueue(@NotNull Player player, @Nullable Kit kit) {
-            joinQueue.add(new QueueEntry(player, kit));
+            joinQueue.add(QueueEntry.ofPlayer(player, kit));
+        }
+
+        public void addPartyToQueue(@NotNull Party party, @Nullable Kit kit) {
+            joinQueue.add(QueueEntry.ofParty(party, kit));
         }
 
         public int getQueuePosition(@NotNull Player player) {
             int pos = 1;
             for (QueueEntry entry : joinQueue) {
-                if (entry.player().getUniqueId().equals(player.getUniqueId())) return pos;
+                if (entry.players().stream().anyMatch(p -> p.getUniqueId().equals(player.getUniqueId()))) return pos;
+                pos++;
+            }
+            return -1;
+        }
+
+        public int getPartyQueuePosition(@NotNull Party party) {
+            int pos = 1;
+            for (QueueEntry entry : joinQueue) {
+                if (entry.players().stream().anyMatch(p -> party.getAllMembers().contains(p.getUniqueId()))) return pos;
                 pos++;
             }
             return -1;
         }
 
         public boolean removeFromQueue(@NotNull Player player) {
-            return joinQueue.removeIf(e -> e.player().getUniqueId().equals(player.getUniqueId()));
+            return joinQueue.removeIf(e -> e.players().stream()
+                    .anyMatch(p -> p.getUniqueId().equals(player.getUniqueId())));
         }
 
         public boolean hasSoloPlayer() {
