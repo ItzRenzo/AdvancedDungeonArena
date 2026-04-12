@@ -52,40 +52,45 @@ public class PartyManager {
         Player target = Bukkit.getPlayer(targetId);
         Player leader = Bukkit.getPlayer(leaderId);
         if (target != null && leader != null) {
-            target.sendMessage("§aYou have been invited to §f" + leader.getName() + "§a's party! Type §f/dungeon accept §aor §f/dungeon decline§a.");
+            target.sendMessage("§aYou have been invited to §f" + leader.getName() + "§a's party! Type §f/dungeon accept " + leader.getName() + " §aor §f/dungeon decline " + leader.getName() + "§a.");
         }
     }
 
-    public void acceptInvite(@NotNull UUID playerId) {
-        for (Party party : this.partyByLeader.values()) {
-            if (party.hasPendingInvite(playerId)) {
-                party.removeInvite(playerId);
-                party.addMember(playerId);
-                this.memberToLeader.put(playerId, party.getLeader());
-
-                Player player = Bukkit.getPlayer(playerId);
-                if (player != null) player.sendMessage("§aYou joined the party!");
-
-                broadcastToParty(party, "§a" + (player != null ? player.getName() : playerId) + " joined the party!");
-                return;
-            }
+    public void acceptInvite(@NotNull UUID playerId, @NotNull UUID leaderId) {
+        Party party = this.partyByLeader.get(leaderId);
+        if (party == null || !party.hasPendingInvite(playerId)) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) player.sendMessage("§cNo pending invite from that player.");
+            return;
         }
+
+        party.removeInvite(playerId);
+        party.addMember(playerId);
+        this.memberToLeader.put(playerId, party.getLeader());
+
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null) player.sendMessage("§aYou joined the party!");
+
+        broadcastToParty(party, "§a" + (player != null ? player.getName() : playerId) + " joined the party!");
     }
 
-    public void declineInvite(@NotNull UUID playerId) {
-        for (Party party : this.partyByLeader.values()) {
-            if (party.hasPendingInvite(playerId)) {
-                party.removeInvite(playerId);
-
-                Player player = Bukkit.getPlayer(playerId);
-                Player leader = Bukkit.getPlayer(party.getLeader());
-
-                if (player != null) player.sendMessage("§cYou declined the party invite.");
-                if (leader != null) leader.sendMessage("§c" + (player != null ? player.getName() : "A player") + " declined your invite.");
-                return;
-            }
+    public void declineInvite(@NotNull UUID playerId, @NotNull UUID leaderId) {
+        Party party = this.partyByLeader.get(leaderId);
+        if (party == null || !party.hasPendingInvite(playerId)) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) player.sendMessage("§cNo pending invite from that player.");
+            return;
         }
+
+        party.removeInvite(playerId);
+
+        Player player = Bukkit.getPlayer(playerId);
+        Player leader = Bukkit.getPlayer(leaderId);
+
+        if (player != null) player.sendMessage("§cYou declined the party invite.");
+        if (leader != null) leader.sendMessage("§c" + (player != null ? player.getName() : "A player") + " declined your invite.");
     }
+
 
     public void leaveParty(@NotNull UUID playerId) {
         UUID leaderId = this.memberToLeader.get(playerId);

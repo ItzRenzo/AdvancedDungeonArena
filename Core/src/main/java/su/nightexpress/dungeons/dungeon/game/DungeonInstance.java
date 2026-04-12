@@ -188,6 +188,17 @@
 
             this.getPlayers().forEach(this::leavePlayer);
 
+            // Disband parties of all players in this dungeon
+            for (DungeonGamer gamer : this.gamersSnapshot) {
+                UUID playerId = gamer.getPlayer().getUniqueId();
+                if (plugin.getPartyManager().hasParty(playerId)) {
+                    Party party = plugin.getPartyManager().getPartyOf(playerId);
+                    if (party != null && party.isLeader(playerId)) {
+                        plugin.getPartyManager().disbandParty(playerId);
+                    }
+                }
+            }
+
             // Save queue before reset clears it
             Queue<QueueEntry> pendingQueue = new LinkedList<>(this.joinQueue);
             this.reset();
@@ -269,7 +280,7 @@
         }
 
         public void tickLobby() {
-            if (!joinQueue.isEmpty() && !hasSoloPlayer()) {
+            if (!joinQueue.isEmpty() && !hasSoloPlayer() && !hasPartyPlayer()) {
                 int maxPlayers = this.config.gameSettings().getMaxPlayers();
 
                 while (!joinQueue.isEmpty()) {
@@ -617,7 +628,7 @@
             }
 
 
-    
+
             if (this.players.size() >= 1) { // someone is already in the dungeon
                 DungeonGamer firstPlayer = this.players.values().iterator().next();
                 if (plugin.getSoloManager().isSolo(firstPlayer.getPlayer().getUniqueId())) {
@@ -627,6 +638,20 @@
                     }
                     return false; // stops the join entirely
                 }
+
+                // Check if player in game is on party
+                if (plugin.getPartyManager().hasParty(firstPlayer.getPlayer().getUniqueId())) {
+                    Party party = plugin.getPartyManager().getPartyOf(firstPlayer.getPlayer().getUniqueId());
+                    if (party != null && !party.isMember(player.getUniqueId())) {
+                        if (!this.isInQueue(player)) {
+                            this.addToQueue(player, null);
+                            player.sendMessage("§eThis dungeon is reserved for a party, you have been added to the queue.");
+                        }
+                        return false;
+                    }
+                }
+
+
             }
     
     
@@ -736,6 +761,13 @@
         public void handlePlayerLeave(@NotNull DungeonPlayer dungeonPlayer) {
             DungeonGamer gamer = (DungeonGamer) dungeonPlayer;
             Player player = gamer.getPlayer();
+
+
+            // Disband party if leader, or leave party if member
+            UUID playerId = player.getUniqueId();
+            if (plugin.getPartyManager().hasParty(playerId)) {
+                plugin.getPartyManager().leaveParty(playerId); // handles both leader (disband) and member (leave)
+            }
 
 
             player.closeInventory();
@@ -1468,6 +1500,13 @@
 
                 if (entrySolo && this.countPlayers() > 0) break;
 
+                // If dungeon has a party inside, stop processing queue
+                if (!this.players.isEmpty()) {
+                    DungeonGamer firstPlayer = this.players.values().iterator().next();
+                    UUID firstId = firstPlayer.getPlayer().getUniqueId();
+                    if (plugin.getPartyManager().hasParty(firstId)) break;
+                }
+
                 joinQueue.poll();
                 for (Player p : entry.players()) {
                     if (this.manager.isPlaying(p)) continue;
@@ -1545,5 +1584,11 @@
             if (this.players.isEmpty()) return false;
             DungeonGamer firstPlayer = this.players.values().iterator().next();
             return plugin.getSoloManager().isSolo(firstPlayer.getPlayer().getUniqueId());
+        }
+
+        public boolean hasPartyPlayer() {
+            if (this.players.isEmpty()) return false;
+            DungeonGamer firstPlayer = this.players.values().iterator().next();
+            return plugin.getPartyManager().hasParty(firstPlayer.getPlayer().getUniqueId());
         }
     }

@@ -189,12 +189,14 @@ public class BaseCommands {
         root.branch(Commands.literal("accept")
                 .playerOnly()
                 .permission("dungeons.command.party")
+                .withArguments(Arguments.player(CommandArguments.PLAYER))
                 .executes((context, arguments) -> acceptInvite(plugin, context, arguments))
         );
 
         root.branch(Commands.literal("decline")
                 .playerOnly()
                 .permission("dungeons.command.party")
+                .withArguments(Arguments.player(CommandArguments.PLAYER))
                 .executes((context, arguments) -> declineInvite(plugin, context, arguments))
         );
 
@@ -336,10 +338,16 @@ public class BaseCommands {
 
         PartyManager partyManager = plugin.getPartyManager();
 
+        if (plugin.getDungeonManager().isPlaying(player)) {
+            player.sendMessage("§cYou are already in a dungeon.");
+            return false;
+        }
+
         if (partyManager.hasParty(player.getUniqueId())) {
             context.send(Lang.PARTY_ERROR_ALREADY_IN_PARTY);
             return false;
         }
+
 
         partyManager.createParty(player.getUniqueId());
         context.send(Lang.PARTY_CREATED);
@@ -616,7 +624,8 @@ public class BaseCommands {
             return false;
         }
 
-        partyManager.acceptInvite(player.getUniqueId());
+        Player leader = arguments.getPlayer(CommandArguments.PLAYER);
+        partyManager.acceptInvite(player.getUniqueId(), leader.getUniqueId());
         return true;
     }
 
@@ -629,7 +638,8 @@ public class BaseCommands {
             return false;
         }
 
-        partyManager.declineInvite(player.getUniqueId());
+        Player leader = arguments.getPlayer(CommandArguments.PLAYER);
+        partyManager.declineInvite(player.getUniqueId(), leader.getUniqueId());
         return true;
     }
 
