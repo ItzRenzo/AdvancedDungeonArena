@@ -549,7 +549,12 @@ public class BaseCommands {
                 return false;
             }
 
-
+            partyManager.removeOfflineMembers(player.getUniqueId());
+            party = partyManager.getPartyOf(player.getUniqueId());
+            if (party == null) {
+                player.sendMessage("§cYour party was disbanded (all members offline).");
+                return false;
+            }
 
             for (UUID memberId : party.getAllMembers()) {
                 if (plugin.getDungeonManager().isPlaying(memberId)) {

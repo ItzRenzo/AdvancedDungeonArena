@@ -124,7 +124,7 @@ public class PartyManager {
 
         Player target = Bukkit.getPlayer(targetId);
         if (target != null) target.sendMessage("§cYou were kicked from the party.");
-        broadcastToParty(party, "§c" + (target != null ? target.getName() : targetId) + " was kicked from the party.");
+        broadcastToParty(party, "§cA party member was left the party.");
     }
 
     public void toggleReady(@NotNull UUID playerId) {
@@ -170,6 +170,8 @@ public class PartyManager {
     public void sendPartyInfo(@NotNull UUID playerId) {
         Party party = this.getPartyOf(playerId);
         if (party == null) return;
+
+        removeOfflineMembers(party.getLeader());
 
         Player player = Bukkit.getPlayer(playerId);
         if (player == null) return;
@@ -232,6 +234,24 @@ public class PartyManager {
         party.addMember(memberId);
         this.memberToLeader.put(memberId, leaderId);
     }
+
+    public void removeOfflineMembers(@NotNull UUID leaderId) {
+        Party party = this.getPartyByLeader(leaderId);
+        if (party == null) return;
+
+        for (UUID memberId : new HashSet<>(party.getAllMembers())) {
+            Player member = Bukkit.getPlayer(memberId);
+            if (member == null || !member.isOnline()) {
+                if (party.isLeader(memberId)) {
+                    disbandParty(memberId);
+                    return;
+                } else {
+                    kickMember(leaderId, memberId);
+                }
+            }
+        }
+    }
+
 
     @NotNull
     public Set<UUID> getReadyPlayers() {
