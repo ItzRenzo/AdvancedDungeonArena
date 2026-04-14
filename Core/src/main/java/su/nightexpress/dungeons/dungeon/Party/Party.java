@@ -11,6 +11,8 @@ public class Party {
     private final UUID leader;
     private final List<UUID> members;
     private final Map<UUID, Long> pendingInvites;
+    private boolean open = false;
+
 
     private static final long INVITE_TIMEOUT = 30_000L;
 
@@ -82,4 +84,7 @@ public class Party {
     public int getSize() {
         return 1 + members.size();
     }
+
+    public boolean isOpen() { return open; }
+    public void setOpen(boolean open) { this.open = open;}
 }

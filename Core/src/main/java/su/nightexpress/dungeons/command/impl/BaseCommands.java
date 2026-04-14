@@ -225,6 +225,20 @@ public class BaseCommands {
                 .executes((context, arguments) -> partyInfo(plugin, context, arguments))
         );
 
+        root.branch(Commands.literal("createopenparty")
+                .playerOnly()
+                .description(Lang.COMMAND_CREATE_PARTY_DESC)
+                .permission(Perms.COMMAND_CREATE_PARTY)
+                .executes((context, arguments) -> createOpenParty(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("joinparty")
+                .playerOnly()
+                .permission("dungeons.command.party")
+                .withArguments(Arguments.player(CommandArguments.PLAYER))
+                .executes((context, arguments) -> joinOpenParty(plugin, context, arguments))
+        );
+
     }
 
     private static boolean getWand(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
@@ -725,6 +739,70 @@ public class BaseCommands {
             return false;
         }
 
+        partyManager.sendPartyInfo(player.getUniqueId());
+        return true;
+    }
+
+    public static boolean createOpenParty(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (plugin.getDungeonManager().isPlaying(player)) {
+            player.sendMessage("§cYou are already in a dungeon.");
+            return false;
+        }
+
+        if (partyManager.hasParty(player.getUniqueId())) {
+            context.send(Lang.PARTY_ERROR_ALREADY_IN_PARTY);
+            return false;
+        }
+
+        partyManager.createParty(player.getUniqueId());
+
+        Party party = partyManager.getPartyOf(player.getUniqueId());
+        party.setOpen(true);
+
+        player.sendMessage("§aOpen party created! Anyone can join with §f/dungeon joinparty " + player.getName() + "§a.");
+        partyManager.sendPartyInfo(player.getUniqueId());
+        return true;
+    }
+
+    private static boolean joinOpenParty(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyManager partyManager = plugin.getPartyManager();
+
+        if (plugin.getDungeonManager().isPlaying(player)) {
+            player.sendMessage("§cYou are already in a dungeon.");
+            return false;
+        }
+
+        if (partyManager.hasParty(player.getUniqueId())) {
+            player.sendMessage("§cYou are already in a party.");
+            return false;
+        }
+
+        Player leader = arguments.getPlayer(CommandArguments.PLAYER);
+
+        if (!partyManager.hasParty(leader.getUniqueId())) {
+            player.sendMessage("§cThat player does not have a party.");
+            return false;
+        }
+
+        Party party = partyManager.getPartyOf(leader.getUniqueId());
+
+        if (!party.isLeader(leader.getUniqueId())) {
+            player.sendMessage("§cYou must specify the party leader's name.");
+            return false;
+        }
+
+        if (!party.isOpen()) {
+            player.sendMessage("§cThat party is not open.");
+            return false;
+        }
+
+        partyManager.addMember(leader.getUniqueId(), player.getUniqueId());
+        player.sendMessage("§aYou joined §f" + leader.getName() + "§a's party!");
+        partyManager.broadcastToParty(party, "§f" + player.getName() + " §ajoined the party.");
         partyManager.sendPartyInfo(player.getUniqueId());
         return true;
     }

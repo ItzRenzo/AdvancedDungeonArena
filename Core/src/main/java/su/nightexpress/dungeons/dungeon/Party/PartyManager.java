@@ -14,6 +14,7 @@ public class PartyManager {
     private final Set<UUID> readyPlayers;
     private final Map<UUID, String> pendingQueueRequest;
 
+
     public PartyManager() {
         this.partyByLeader = new HashMap<>();
         this.memberToLeader = new HashMap<>();
@@ -202,6 +203,8 @@ public class PartyManager {
         }
     }
 
+
+
     public boolean hasParty(@NotNull UUID playerId) {
         return this.memberToLeader.containsKey(playerId);
     }
@@ -220,6 +223,14 @@ public class PartyManager {
         UUID leaderId = this.memberToLeader.get(playerId);
         if (leaderId == null) return null;
         return this.partyByLeader.get(leaderId);
+    }
+
+    public void addMember(@NotNull UUID leaderId, @NotNull UUID memberId) {
+        Party party = this.partyByLeader.get(leaderId);
+        if (party == null) return;
+
+        party.addMember(memberId);
+        this.memberToLeader.put(memberId, leaderId);
     }
 
     @NotNull

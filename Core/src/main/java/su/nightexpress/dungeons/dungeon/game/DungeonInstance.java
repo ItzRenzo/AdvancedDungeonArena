@@ -27,7 +27,6 @@
     import su.nightexpress.dungeons.dungeon.criteria.registry.mob.MobCriterias;
     import su.nightexpress.dungeons.dungeon.event.DungeonEventReceiver;
     import su.nightexpress.dungeons.dungeon.event.game.*;
-    import su.nightexpress.dungeons.dungeon.event.normal.DungeonEndEvent;
     import su.nightexpress.dungeons.dungeon.event.normal.DungeonStartedEvent;
     import su.nightexpress.dungeons.dungeon.feature.KillStreak;
     import su.nightexpress.dungeons.dungeon.feature.LevelRequirement;
@@ -38,6 +37,7 @@
     import su.nightexpress.dungeons.dungeon.mob.DungeonMob;
     import su.nightexpress.dungeons.dungeon.player.DungeonGamer;
     import su.nightexpress.dungeons.dungeon.player.PlayerSnapshot;
+    import su.nightexpress.dungeons.dungeon.player.QueueEntry;
     import su.nightexpress.dungeons.dungeon.reward.GameReward;
     import su.nightexpress.dungeons.dungeon.reward.Reward;
     import su.nightexpress.dungeons.dungeon.spot.Spot;
@@ -104,30 +104,6 @@
         private boolean stageCompleted;
 
         private final Queue<QueueEntry> joinQueue = new LinkedList<>();
-
-        private record QueueEntry(List<Player> players, Kit kit) {
-            static QueueEntry ofPlayer(Player player, Kit kit) {
-                List<Player> list = new ArrayList<>();
-                list.add(player);
-                return new QueueEntry(list, kit);
-            }
-
-            static QueueEntry ofParty(Party party, Kit kit) {
-                List<Player> members = party.getAllMembers().stream()
-                        .map(Bukkit::getPlayer)
-                        .filter(p -> p != null)
-                        .collect(Collectors.toList());
-                return new QueueEntry(members, kit);
-            }
-
-            boolean isSolo() {
-                return players.size() == 1;
-            }
-
-            Player firstPlayer() {
-                return players.get(0);
-            }
-        }
     
         public DungeonInstance(@NotNull DungeonPlugin plugin, @NotNull DungeonConfig config, @NotNull DungeonManager manager) {
             this.plugin = plugin;
@@ -295,7 +271,7 @@
 
                     // solo check
                     boolean entrySolo = entry.isSolo() &&
-                            plugin.getSoloManager().isSolo(entry.firstPlayer().getUniqueId());
+                            plugin.getSoloManager().isSolo(entry.   firstPlayer().getUniqueId());
 
                     if (entrySolo && this.countPlayers() > 0) break;
 
