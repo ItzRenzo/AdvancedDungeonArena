@@ -252,6 +252,10 @@ public class PartyManager {
         }
     }
 
+    public Collection<Party> getAllParties() {
+        return this.partyByLeader.values();
+    }
+
 
     @NotNull
     public Set<UUID> getReadyPlayers() {

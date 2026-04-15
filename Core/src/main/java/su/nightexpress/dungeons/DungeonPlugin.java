@@ -1,7 +1,9 @@
 package su.nightexpress.dungeons;
 
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import su.nightexpress.dungeons.ComponentUtilities.SpecialButtonListener;
 import su.nightexpress.dungeons.api.dungeon.DungeonEntityBridge;
 import su.nightexpress.dungeons.command.impl.BaseCommands;
 import su.nightexpress.dungeons.command.impl.KitCommands;
@@ -21,6 +23,8 @@ import su.nightexpress.dungeons.dungeon.script.action.ActionRegistry;
 import su.nightexpress.dungeons.dungeon.script.condition.ConditionRegistry;
 import su.nightexpress.dungeons.dungeon.script.number.NumberComparators;
 import su.nightexpress.dungeons.dungeon.script.task.TaskRegistry;
+import su.nightexpress.dungeons.gui.GuiListener.PartyDetailsListener;
+import su.nightexpress.dungeons.gui.GuiListener.PartyFinderListener;
 import su.nightexpress.dungeons.hook.HookId;
 import su.nightexpress.dungeons.hook.impl.McMMOHook;
 import su.nightexpress.dungeons.hook.impl.PlaceholderHook;
@@ -58,6 +62,8 @@ public class DungeonPlugin extends NightPlugin {
     private PartyManager partyManager;
     private SoloManager soloManager;
 
+    public static DungeonPlugin instance;
+
     @Override
     @NotNull
     protected PluginDetails getDefaultDetails() {
@@ -81,6 +87,8 @@ public class DungeonPlugin extends NightPlugin {
         if (!this.loadInternals()) return;
 
         this.loadEngine();
+
+        instance = this;
 
         this.dataHandler = new DataHandler(this);
         this.dataHandler.setup();
@@ -115,6 +123,12 @@ public class DungeonPlugin extends NightPlugin {
         if (Plugins.isInstalled(HookId.MCMMO)) {
             McMMOHook.setup();
         }
+
+
+        Bukkit.getPluginManager().registerEvents(new SpecialButtonListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PartyFinderListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PartyDetailsListener(), this);
+
     }
 
     @Override
@@ -260,4 +274,5 @@ public class DungeonPlugin extends NightPlugin {
 
     @NotNull
     public SoloManager getSoloManager() { return this.soloManager; }
+
 }

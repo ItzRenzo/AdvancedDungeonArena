@@ -18,6 +18,7 @@ import su.nightexpress.dungeons.dungeon.player.SoloManager;
 import su.nightexpress.dungeons.dungeon.spot.Spot;
 import su.nightexpress.dungeons.dungeon.spot.SpotState;
 import su.nightexpress.dungeons.dungeon.stage.Stage;
+import su.nightexpress.dungeons.gui.PartyFinderGUI;
 import su.nightexpress.dungeons.kit.impl.Kit;
 import su.nightexpress.dungeons.selection.SelectionType;
 import su.nightexpress.nightcore.commands.Arguments;
@@ -237,6 +238,13 @@ public class BaseCommands {
                 .permission("dungeons.command.party")
                 .withArguments(Arguments.player(CommandArguments.PLAYER))
                 .executes((context, arguments) -> joinOpenParty(plugin, context, arguments))
+        );
+
+        root.branch(Commands.literal("partyfinder")
+                .playerOnly()
+                .permission("dungeons.command.open")
+                .withArguments(Arguments.player(CommandArguments.PLAYER).permission(Perms.COMMAND_BROWSE_OTHERS).optional())
+                .executes((context, arguments) -> openPartyFinder(plugin, context, arguments))
         );
 
     }
@@ -809,6 +817,12 @@ public class BaseCommands {
         player.sendMessage("§aYou joined §f" + leader.getName() + "§a's party!");
         partyManager.broadcastToParty(party, "§f" + player.getName() + " §ajoined the party.");
         partyManager.sendPartyInfo(player.getUniqueId());
+        return true;
+    }
+
+    private static boolean openPartyFinder(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        PartyFinderGUI.createGUI(player);
         return true;
     }
 
