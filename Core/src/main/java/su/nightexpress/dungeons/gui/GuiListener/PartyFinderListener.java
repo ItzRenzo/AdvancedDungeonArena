@@ -1,11 +1,10 @@
 package su.nightexpress.dungeons.gui.GuiListener;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import su.nightexpress.dungeons.gui.PartyFinderGUI;
+import su.nightexpress.dungeons.DungeonPlugin;
 
 public class PartyFinderListener implements Listener {
 
@@ -15,9 +14,13 @@ public class PartyFinderListener implements Listener {
         if (!(e.getWhoClicked() instanceof Player)) return;
         if (e.getClickedInventory() != e.getView().getTopInventory()) return;
 
-        Component title = e.getView().title();
+        String title = e.getView().getTitle();
 
-        if (!title.equals(Component.text(PartyFinderGUI.TITLE))) return;
+        String expected = DungeonPlugin.instance.getGUIConfigManager()
+                .getString("party-finder.title")
+                .replace("&", "§");
+
+        if (!title.equals(expected)) return;
 
         e.setCancelled(true);
     }

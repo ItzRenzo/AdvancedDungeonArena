@@ -1,0 +1,106 @@
+party-finder:
+  title: "&8Party Finder"
+  size: 45
+
+  border:
+    material: GRAY_STAINED_GLASS_PANE
+
+  slots:
+    border:
+      - 0,1,2,3,4,5,6,7,8
+      - 9,17
+      - 18,26
+      - 27,35
+      - 36,37,38,39,40,41,42,43,44
+
+    parties:
+      - 10,11,12,13,14,15,16
+      - 19,20,21,22,23,24,25
+      - 28,29,30,31,32,33,34
+
+  buttons:
+
+    public-party:
+      enabled: true
+      slot: 2
+      material: EMERALD_BLOCK
+      name: "&aCreate Party"
+      lore:
+        - "&7Start your own party"
+        - ""
+        - "&eClick to create"
+
+    private-party:
+      enabled: true
+      slot: 6
+      material: EMERALD_BLOCK
+      name: "&dCreate Private Party"
+      lore:
+        - "&7Start a private party"
+        - "&7Invite-only access"
+        - ""
+        - "&eClick to create"
+
+    view-party:
+      slot: 4
+      material: NETHER_STAR
+      name: "&bYour Party"
+      lore:
+        - "&7Members: &f%members%"
+        - ""
+        - "&eClick to view details"
+
+  party-item:
+    name: "&eParty of &f%leader%"
+    lore:
+      - "&7Members: &f%members%"
+      - ""
+      - "&aClick to join"
+
+
+
+party-details:
+  title: "&8Party Details"
+  size: 45
+
+  border:
+    material: GRAY_STAINED_GLASS_PANE
+
+  slots:
+    border:
+      - 0,1,2,3,4,5,6,7,8
+      - 9,17
+      - 18,26
+      - 27,35
+      - 36,37,38,39,40,41,42,43,44
+
+    members:
+      - 10,11,12,13,14,15,16
+      - 19,20,21,22,23,24,25
+      - 28,29,30,31,32,33,34
+
+    leader: 4
+    leave: 40
+
+  leader:
+    name: "&6👑 %leader%"
+    lore:
+      - "&eParty Leader"
+      - "&7Has full control over the party"
+      - ""
+      - "&7Members: &f%members%"
+
+  member:
+    name: "&f%member%"
+    lore:
+      - "&7Party Member"
+      - "&8In this party"
+
+  buttons:
+    leave:
+      material: BARRIER
+      name: "&cLeave Party"
+      lore:
+        - "&7Leave your current party"
+        - ""
+        - "&eClick to leave"

@@ -1,6 +1,7 @@
 package su.nightexpress.dungeons.command.impl;
 
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import su.nightexpress.dungeons.DungeonPlugin;
 import su.nightexpress.dungeons.Placeholders;
@@ -19,6 +20,7 @@ import su.nightexpress.dungeons.dungeon.spot.Spot;
 import su.nightexpress.dungeons.dungeon.spot.SpotState;
 import su.nightexpress.dungeons.dungeon.stage.Stage;
 import su.nightexpress.dungeons.gui.PartyFinderGUI;
+import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 import su.nightexpress.dungeons.kit.impl.Kit;
 import su.nightexpress.dungeons.selection.SelectionType;
 import su.nightexpress.nightcore.commands.Arguments;
@@ -40,6 +42,7 @@ public class BaseCommands {
             .permission(Perms.COMMAND_RELOAD)
             .executes((context, arguments) -> {
                 plugin.doReload(context.getSender());
+                plugin.getGUIConfigManager().reload();
                 return true;
             })
         );

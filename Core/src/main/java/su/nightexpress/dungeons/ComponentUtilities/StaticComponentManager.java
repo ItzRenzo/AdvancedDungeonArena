@@ -17,6 +17,7 @@ import org.intellij.lang.annotations.Subst;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @SuppressWarnings({"unused", "DuplicatedCode"})
 public class StaticComponentManager {
@@ -114,6 +115,20 @@ public class StaticComponentManager {
         skull.setData(DataComponentTypes.PROFILE,
                 ResolvableProfile.resolvableProfile().name(name));
         return skull;
+    }
+
+    public static ItemStack getPlayerHead(UUID uuid) {
+
+        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
+
+        meta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
+
+        meta.displayName(null);
+        meta.lore(null);
+
+        item.setItemMeta(meta);
+        return item;
     }
 
 

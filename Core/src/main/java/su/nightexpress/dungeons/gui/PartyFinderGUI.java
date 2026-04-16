@@ -16,45 +16,31 @@ import su.nightexpress.dungeons.Components.PartyFinder.CreatePrivatePartyButton;
 import su.nightexpress.dungeons.Components.PartyFinder.ViewPartyDetailsButton;
 import su.nightexpress.dungeons.dungeon.Party.Party;
 import su.nightexpress.dungeons.DungeonPlugin;
+import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class PartyFinderGUI {
 
-    public static final int SIZE = 45;
-    public static final String TITLE = "Party Finder";
-
-    private static final int[] BORDER = {
-            0,1,2,3,4,5,6,7,8,
-            9,17,
-            18,26,
-            27,35,
-            36,37,38,39,40,41,42,43,44
-    };
-
-    private static final int[] PARTY_SLOTS = {
-            10,11,12,13,14,15,16,
-            19,20,21,22,23,24,25,
-            28,29,30,31,32,33,34
-    };
-
-    private static final int PUBLIC_PARTY_SLOT = 2;
-    private static final int PRIVATE_PARTY_SLOT = 6;
-    private static final int VIEW_PARTY_SLOT = 4;
-
     public static void createGUI(Player player) {
 
-        Inventory gui = Bukkit.createInventory(player, SIZE, TITLE);
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
 
-        StaticComponentManager.createBorder(gui, BORDER);
+        String title = cfg.getString("party-finder.title").replace("&", "§");
+        int size = cfg.getInt("party-finder.size");
+
+        Inventory gui = Bukkit.createInventory(player, size, title);
+
+        List<Integer> borderSlots = parseSlots(cfg.get().getStringList("party-finder.slots.border"));
+        StaticComponentManager.createBorder(gui, borderSlots.stream().mapToInt(i -> i).toArray());
 
         UUID uuid = player.getUniqueId();
 
         Party playerParty = null;
 
         for (Party party : DungeonPlugin.instance.getPartyManager().getAllParties()) {
-
             if (party.getLeader().equals(uuid) || party.getMembers().contains(uuid)) {
                 playerParty = party;
                 break;
@@ -63,44 +49,49 @@ public class PartyFinderGUI {
 
         if (playerParty != null) {
 
+            int slot = cfg.getInt("party-finder.buttons.view-party.slot");
+
             new ViewPartyDetailsButton(
                     gui,
-                    VIEW_PARTY_SLOT,
+                    slot,
                     createPartyDetailsItem(playerParty),
                     null
             );
 
         } else {
 
+            int publicSlot = cfg.getInt("party-finder.buttons.public-party.slot");
+            int privateSlot = cfg.getInt("party-finder.buttons.private-party.slot");
+
             new CreatePublicPartyButton(
                     gui,
-                    PUBLIC_PARTY_SLOT,
+                    publicSlot,
                     createPublicPartyItemStack(),
                     null
             );
 
-
             new CreatePrivatePartyButton(
                     gui,
-                    PRIVATE_PARTY_SLOT,
+                    privateSlot,
                     createPrivatePartyItemStack(),
                     null
             );
         }
 
+        List<Integer> partySlots = parseSlots(cfg.get().getStringList("party-finder.slots.parties"));
+
         int index = 0;
 
         for (Party party : DungeonPlugin.instance.getPartyManager().getAllParties()) {
 
-            if (index >= PARTY_SLOTS.length) break;
-
-            if (!party.isOpen()) { continue; }
+            if (index >= partySlots.size()) break;
+            if (!party.isOpen()) continue;
 
             ItemStack item = createPartyItem(party);
 
             new JoinPartyButton(
                     gui,
-                    PARTY_SLOTS[index],
+                    partySlots.get(index),
                     item,
                     null
             );
@@ -113,78 +104,96 @@ public class PartyFinderGUI {
 
     private static ItemStack createPublicPartyItemStack() {
 
-        ItemStack item = new ItemStack(Material.EMERALD_BLOCK);
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+        String path = "party-finder.buttons.public-party";
+
+        ItemStack item = new ItemStack(Material.valueOf(cfg.getString(path + ".material")));
         ItemMeta meta = item.getItemMeta();
 
-        meta.displayName(Component.text("§aCreate Party"));
+        meta.displayName(Component.text(cfg.getString(path + ".name").replace("&", "§")));
 
-        meta.lore(List.of(
-                Component.text("§7Start your own party"),
-                Component.text(""),
-                Component.text("§eClick to create")
-        ));
+        List<Component> lore = new ArrayList<>();
+        for (String line : cfg.get().getStringList(path + ".lore")) {
+            lore.add(Component.text(line.replace("&", "§")));
+        }
 
+        meta.lore(lore);
         item.setItemMeta(meta);
         return item;
     }
 
     private static ItemStack createPrivatePartyItemStack() {
 
-        ItemStack item = new ItemStack(Material.EMERALD_BLOCK);
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+        String path = "party-finder.buttons.private-party";
+
+        ItemStack item = new ItemStack(Material.valueOf(cfg.getString(path + ".material")));
         ItemMeta meta = item.getItemMeta();
 
-        meta.displayName(Component.text("§dCreate Private Party"));
+        meta.displayName(Component.text(cfg.getString(path + ".name").replace("&", "§")));
 
-        meta.lore(List.of(
-                Component.text("§7Start a private party"),
-                Component.text("§7Invite-only access"),
-                Component.text(""),
-                Component.text("§eClick to create")
-        ));
+        List<Component> lore = new ArrayList<>();
+        for (String line : cfg.get().getStringList(path + ".lore")) {
+            lore.add(Component.text(line.replace("&", "§")));
+        }
 
+        meta.lore(lore);
         item.setItemMeta(meta);
         return item;
     }
 
-
-
-
     private static ItemStack createPartyDetailsItem(Party party) {
 
-        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+        String path = "party-finder.buttons.view-party";
+
+        ItemStack item = new ItemStack(Material.valueOf(cfg.getString(path + ".material")));
         ItemMeta meta = item.getItemMeta();
 
-        meta.displayName(Component.text("§bYour Party"));
+        meta.displayName(Component.text(cfg.getString(path + ".name").replace("&", "§")));
 
-        meta.lore(List.of(
-                Component.text("§7Members: §f" + party.getMembers().size()),
-                Component.text(""),
-                Component.text("§eClick to view details")
-        ));
+        List<Component> lore = new ArrayList<>();
+        for (String line : cfg.get().getStringList(path + ".lore")) {
+            lore.add(Component.text(
+                    line.replace("&", "§")
+                            .replace("%members%", String.valueOf(party.getMembers().size()))
+            ));
+        }
 
+        meta.lore(lore);
         item.setItemMeta(meta);
         return item;
     }
 
     private static ItemStack createPartyItem(Party party) {
 
-        UUID leaderId = party.getLeader();
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
 
+        UUID leaderId = party.getLeader();
         String leaderName = Bukkit.getOfflinePlayer(leaderId).getName();
+        UUID leaderID = Bukkit.getOfflinePlayer(leaderId).getUniqueId();
         if (leaderName == null) leaderName = "Unknown";
 
-        ItemStack item = StaticComponentManager.getPlayerHead(leaderName);
+        ItemStack item = StaticComponentManager.getPlayerHead(leaderID);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
 
-            meta.displayName(Component.text("§eParty of §f" + leaderName));
+            String name = cfg.getString("party-finder.party-item.name")
+                    .replace("&", "§")
+                    .replace("%leader%", leaderName);
 
-            meta.lore(List.of(
-                    Component.text("§7Members: §f" + party.getMembers().size()),
-                    Component.text(""),
-                    Component.text("§aClick to join")
-            ));
+            meta.displayName(Component.text(name));
+
+            List<Component> lore = new ArrayList<>();
+            for (String line : cfg.get().getStringList("party-finder.party-item.lore")) {
+                lore.add(Component.text(
+                        line.replace("&", "§")
+                                .replace("%members%", String.valueOf(party.getMembers().size()))
+                ));
+            }
+
+            meta.lore(lore);
 
             meta.getPersistentDataContainer().set(
                     new NamespacedKey(DungeonPlugin.instance, "party_leader"),
@@ -198,4 +207,13 @@ public class PartyFinderGUI {
         return item;
     }
 
+    private static List<Integer> parseSlots(List<String> list) {
+        List<Integer> slots = new ArrayList<>();
+        for (String s : list) {
+            for (String part : s.split(",")) {
+                slots.add(Integer.parseInt(part.trim()));
+            }
+        }
+        return slots;
+    }
 }

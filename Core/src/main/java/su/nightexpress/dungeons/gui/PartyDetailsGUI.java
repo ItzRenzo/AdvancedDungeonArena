@@ -9,39 +9,27 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import su.nightexpress.dungeons.ComponentUtilities.StaticComponentManager;
 import su.nightexpress.dungeons.Components.PartyDetails.LeavePartyButton;
+import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 import su.nightexpress.dungeons.dungeon.Party.Party;
 import su.nightexpress.dungeons.DungeonPlugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class PartyDetailsGUI {
 
-    private static final int SIZE = 45;
-    public static final String TITLE = "Party Details";
-
-    private static final int[] BORDER = {
-            0,1,2,3,4,5,6,7,8,
-            9,17,
-            18,26,
-            27,35,
-            36,37,38,39,40,41,42,43,44
-    };
-
-    private static final int INFO_SLOT = 4;
-    private static final int LEAVE_SLOT = 40;
-
-    private static final int[] MEMBER_SLOTS = {
-            10,11,12,13,14,15,16,
-            19,20,21,22,23,24,25,
-            28,29,30,31,32,33,34
-    };
-
     public static void open(Player player) {
 
-        Inventory gui = Bukkit.createInventory(player, SIZE, TITLE);
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
 
-        StaticComponentManager.createBorder(gui, BORDER);
+        String title = cfg.getString("party-details.title").replace("&", "§");
+        int size = cfg.getInt("party-details.size");
+
+        Inventory gui = Bukkit.createInventory(player, size, title);
+
+        List<Integer> borderSlots = parseSlots(cfg.get().getStringList("party-details.slots.border"));
+        StaticComponentManager.createBorder(gui, borderSlots.stream().mapToInt(i -> i).toArray());
 
         Party party = null;
         UUID uuid = player.getUniqueId();
@@ -59,10 +47,14 @@ public class PartyDetailsGUI {
             return;
         }
 
-        gui.setItem(INFO_SLOT, createLeaderHead(party));
+        int leaderSlot = cfg.getInt("party-details.slots.leader");
+        int leaveSlot = cfg.getInt("party-details.slots.leave");
+
+        gui.setItem(leaderSlot, createLeaderHead(party));
+
         new LeavePartyButton(
                 gui,
-                LEAVE_SLOT,
+                leaveSlot,
                 createLeaveItem(),
                 "leave_party"
         );
@@ -74,22 +66,33 @@ public class PartyDetailsGUI {
 
     private static ItemStack createLeaderHead(Party party) {
 
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+
         String leaderName = Bukkit.getOfflinePlayer(party.getLeader()).getName();
+        UUID leaderUUid =  Bukkit.getOfflinePlayer(party.getLeader()).getUniqueId();
+
         if (leaderName == null) leaderName = "Unknown";
 
-        ItemStack item = StaticComponentManager.getPlayerHead(leaderName);
+        ItemStack item = StaticComponentManager.getPlayerHead(leaderUUid);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.displayName(Component.text("§6👑 " + leaderName));
 
-            meta.lore(List.of(
-                    Component.text("§eParty Leader"),
-                    Component.text("§7Has full control over the party"),
-                    Component.text(""),
-                    Component.text("§7Members: §f" + party.getMembers().size())
-            ));
+            String name = cfg.getString("party-details.leader.name")
+                    .replace("&", "§")
+                    .replace("%leader%", leaderName);
 
+            meta.displayName(Component.text(name));
+
+            List<Component> lore = new ArrayList<>();
+            for (String line : cfg.get().getStringList("party-details.leader.lore")) {
+                lore.add(Component.text(
+                        line.replace("&", "§")
+                                .replace("%members%", String.valueOf(party.getMembers().size()))
+                ));
+            }
+
+            meta.lore(lore);
             item.setItemMeta(meta);
         }
 
@@ -98,49 +101,71 @@ public class PartyDetailsGUI {
 
     private static void placeMembers(Inventory gui, Party party) {
 
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+        List<Integer> slots = parseSlots(cfg.get().getStringList("party-details.slots.members"));
+
         int index = 0;
 
         for (UUID uuid : party.getMembers()) {
 
-            if (index >= MEMBER_SLOTS.length) break;
+            if (index >= slots.size()) break;
 
             String name = Bukkit.getOfflinePlayer(uuid).getName();
             if (name == null) name = "Unknown";
 
-            ItemStack head = StaticComponentManager.getPlayerHead(name);
+            ItemStack head = StaticComponentManager.getPlayerHead(uuid);
             ItemMeta meta = head.getItemMeta();
 
             if (meta != null) {
 
-                meta.displayName(Component.text("§f" + name));
+                String display = cfg.getString("party-details.member.name")
+                        .replace("&", "§")
+                        .replace("%member%", name);
 
-                meta.lore(List.of(
-                        Component.text("§7Party Member"),
-                        Component.text("§8In this party")
-                ));
+                meta.displayName(Component.text(display));
 
+                List<Component> lore = new ArrayList<>();
+                for (String line : cfg.get().getStringList("party-details.member.lore")) {
+                    lore.add(Component.text(line.replace("&", "§")));
+                }
+
+                meta.lore(lore);
                 head.setItemMeta(meta);
             }
 
-            gui.setItem(MEMBER_SLOTS[index], head);
+            gui.setItem(slots.get(index), head);
             index++;
         }
     }
 
     private static ItemStack createLeaveItem() {
 
-        ItemStack item = new ItemStack(Material.BARRIER);
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+        String path = "party-details.buttons.leave";
+
+        ItemStack item = new ItemStack(Material.valueOf(cfg.getString(path + ".material")));
         ItemMeta meta = item.getItemMeta();
 
-        meta.displayName(Component.text("§cLeave Party"));
+        meta.displayName(Component.text(cfg.getString(path + ".name").replace("&", "§")));
 
-        meta.lore(List.of(
-                Component.text("§7Leave your current party"),
-                Component.text(""),
-                Component.text("§eClick to leave")
-        ));
+        List<Component> lore = new ArrayList<>();
+        for (String line : cfg.get().getStringList(path + ".lore")) {
+            lore.add(Component.text(line.replace("&", "§")));
+        }
+
+        meta.lore(lore);
 
         item.setItemMeta(meta);
         return item;
+    }
+
+    private static List<Integer> parseSlots(List<String> list) {
+        List<Integer> slots = new ArrayList<>();
+        for (String s : list) {
+            for (String part : s.split(",")) {
+                slots.add(Integer.parseInt(part.trim()));
+            }
+        }
+        return slots;
     }
 }

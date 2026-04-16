@@ -23,6 +23,7 @@ import su.nightexpress.dungeons.dungeon.script.action.ActionRegistry;
 import su.nightexpress.dungeons.dungeon.script.condition.ConditionRegistry;
 import su.nightexpress.dungeons.dungeon.script.number.NumberComparators;
 import su.nightexpress.dungeons.dungeon.script.task.TaskRegistry;
+import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 import su.nightexpress.dungeons.gui.GuiListener.PartyDetailsListener;
 import su.nightexpress.dungeons.gui.GuiListener.PartyFinderListener;
 import su.nightexpress.dungeons.hook.HookId;
@@ -44,7 +45,6 @@ import su.nightexpress.nightcore.NightPlugin;
 import su.nightexpress.nightcore.commands.command.NightCommand;
 import su.nightexpress.nightcore.config.PluginDetails;
 import su.nightexpress.nightcore.util.Plugins;
-import su.nightexpress.nightcore.util.bridge.Software;
 
 public class DungeonPlugin extends NightPlugin {
 
@@ -61,6 +61,7 @@ public class DungeonPlugin extends NightPlugin {
 
     private PartyManager partyManager;
     private SoloManager soloManager;
+    private GUIConfigManager guiConfigManager;
 
     public static DungeonPlugin instance;
 
@@ -114,6 +115,8 @@ public class DungeonPlugin extends NightPlugin {
         this.partyManager = new PartyManager();
 
         this.soloManager = new SoloManager();
+
+        this.guiConfigManager = new GUIConfigManager(this);
 
         this.loadCommands();
 
@@ -274,5 +277,9 @@ public class DungeonPlugin extends NightPlugin {
 
     @NotNull
     public SoloManager getSoloManager() { return this.soloManager; }
+
+    public GUIConfigManager getGUIConfigManager() {
+        return guiConfigManager;
+    }
 
 }
