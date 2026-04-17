@@ -52,8 +52,6 @@ public class JoinPartyButton extends ComponentButton {
             return;
         }
 
-        player.sendMessage("§a[Party] Attempting to join " + leaderName + "...");
-
         player.performCommand("ada joinparty " + leaderName);
 
         if (DungeonPlugin.instance.getPartyManager().getPartyOf(player.getUniqueId()) != null) {

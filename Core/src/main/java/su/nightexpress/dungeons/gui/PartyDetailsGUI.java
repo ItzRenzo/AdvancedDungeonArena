@@ -8,6 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import su.nightexpress.dungeons.ComponentUtilities.StaticComponentManager;
+import su.nightexpress.dungeons.Components.PartyDetails.GoToKickMembersButton;
 import su.nightexpress.dungeons.Components.PartyDetails.LeavePartyButton;
 import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 import su.nightexpress.dungeons.dungeon.Party.Party;
@@ -49,6 +50,7 @@ public class PartyDetailsGUI {
 
         int leaderSlot = cfg.getInt("party-details.slots.leader");
         int leaveSlot = cfg.getInt("party-details.slots.leave");
+        int kickSlot   = cfg.getInt("party-details.slots.kick");
 
         gui.setItem(leaderSlot, createLeaderHead(party));
 
@@ -58,6 +60,10 @@ public class PartyDetailsGUI {
                 createLeaveItem(),
                 "leave_party"
         );
+
+        if (party.getLeader().equals(uuid)) {
+            new GoToKickMembersButton(gui, kickSlot, createKickItem(), "go_to_kick_members");
+        }
 
         placeMembers(gui, party);
 
@@ -155,6 +161,26 @@ public class PartyDetailsGUI {
 
         meta.lore(lore);
 
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack createKickItem() {
+
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+        String path = "party-details.buttons.kick";
+
+        ItemStack item = new ItemStack(Material.valueOf(cfg.getString(path + ".material")));
+        ItemMeta meta = item.getItemMeta();
+
+        meta.displayName(Component.text(cfg.getString(path + ".name").replace("&", "§")));
+
+        List<Component> lore = new ArrayList<>();
+        for (String line : cfg.get().getStringList(path + ".lore")) {
+            lore.add(Component.text(line.replace("&", "§")));
+        }
+
+        meta.lore(lore);
         item.setItemMeta(meta);
         return item;
     }

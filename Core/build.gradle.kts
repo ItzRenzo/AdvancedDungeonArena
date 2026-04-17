@@ -2,6 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm")
 }
 
 dependencies {
@@ -32,6 +33,7 @@ dependencies {
     compileOnly("gg.auroramc:AuroraLevels:2.0.0")
     compileOnly("gg.auroramc:Aurora:2.1.6")
     compileOnly("org.jetbrains:annotations:24.0.0")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks.processResources {
@@ -49,4 +51,10 @@ tasks.named<ShadowJar>("shadowJar") {
 
 tasks.assemble {
     dependsOn(tasks.named("shadowJar"))
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(21)
 }

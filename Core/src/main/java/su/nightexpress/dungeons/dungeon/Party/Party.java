@@ -1,5 +1,6 @@
 package su.nightexpress.dungeons.dungeon.Party;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,6 +13,7 @@ public class Party {
     private final List<UUID> members;
     private final Map<UUID, Long> pendingInvites;
     private boolean open = false;
+    private final int maxParty = 5;
 
 
     private static final long INVITE_TIMEOUT = 30_000L;
@@ -46,6 +48,15 @@ public class Party {
     public void addMember(@NotNull UUID playerId) {
         if (!this.members.contains(playerId)) {
             this.members.add(playerId);
+
+            if (isMaxParty()) {
+                for (UUID uuid : getAllMembers()) {
+                    Player online = Bukkit.getPlayer(uuid);
+                    if (online != null) {
+                        online.sendMessage("§6The party is now full!");
+                    }
+                }
+            }
         }
     }
 
@@ -83,6 +94,10 @@ public class Party {
 
     public int getSize() {
         return 1 + members.size();
+    }
+
+    public boolean isMaxParty() {
+        return members.size() >= maxParty - 1;
     }
 
     public boolean isOpen() { return open; }
