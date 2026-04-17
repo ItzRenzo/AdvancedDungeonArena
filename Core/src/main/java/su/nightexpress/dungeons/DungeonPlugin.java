@@ -23,6 +23,7 @@ import su.nightexpress.dungeons.dungeon.script.action.ActionRegistry;
 import su.nightexpress.dungeons.dungeon.script.condition.ConditionRegistry;
 import su.nightexpress.dungeons.dungeon.script.number.NumberComparators;
 import su.nightexpress.dungeons.dungeon.script.task.TaskRegistry;
+import su.nightexpress.dungeons.gui.GuiListener.KickPlayerListener;
 import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 import su.nightexpress.dungeons.gui.GuiListener.PartyDetailsListener;
 import su.nightexpress.dungeons.gui.GuiListener.PartyFinderListener;
@@ -131,6 +132,7 @@ public class DungeonPlugin extends NightPlugin {
         Bukkit.getPluginManager().registerEvents(new SpecialButtonListener(), this);
         Bukkit.getPluginManager().registerEvents(new PartyFinderListener(), this);
         Bukkit.getPluginManager().registerEvents(new PartyDetailsListener(), this);
+        Bukkit.getPluginManager().registerEvents(new KickPlayerListener(), this);
 
     }
 
