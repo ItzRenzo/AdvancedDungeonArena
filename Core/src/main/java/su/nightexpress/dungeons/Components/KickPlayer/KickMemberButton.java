@@ -1,4 +1,4 @@
-package su.nightexpress.dungeons.Components.PartyDetails;
+package su.nightexpress.dungeons.Components.KickPlayer;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;

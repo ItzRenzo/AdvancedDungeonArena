@@ -2,15 +2,14 @@ package su.nightexpress.dungeons.gui;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import su.nightexpress.dungeons.Components.PartyDetails.KickMemberButton;
 import su.nightexpress.dungeons.ComponentUtilities.StaticComponentManager;
+import su.nightexpress.dungeons.Components.KickPlayer.KickMemberButton;
 import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 import su.nightexpress.dungeons.dungeon.Party.Party;
 import su.nightexpress.dungeons.DungeonPlugin;
