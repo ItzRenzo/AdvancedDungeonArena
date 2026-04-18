@@ -10,10 +10,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import su.nightexpress.dungeons.ComponentUtilities.StaticComponentManager;
-import su.nightexpress.dungeons.Components.PartyFinder.JoinPartyButton;
-import su.nightexpress.dungeons.Components.PartyFinder.CreatePublicPartyButton;
-import su.nightexpress.dungeons.Components.PartyFinder.CreatePrivatePartyButton;
-import su.nightexpress.dungeons.Components.PartyFinder.ViewPartyDetailsButton;
+import su.nightexpress.dungeons.Components.PartyFinder.*;
+import su.nightexpress.dungeons.Components.RefreshButton;
 import su.nightexpress.dungeons.dungeon.Party.Party;
 import su.nightexpress.dungeons.DungeonPlugin;
 import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
@@ -24,7 +22,7 @@ import java.util.UUID;
 
 public class PartyFinderGUI {
 
-    public static void createGUI(Player player) {
+    public static void open(Player player) {
 
         GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
 
@@ -35,6 +33,14 @@ public class PartyFinderGUI {
 
         List<Integer> borderSlots = parseSlots(cfg.get().getStringList("party-finder.slots.border"));
         StaticComponentManager.createBorder(gui, borderSlots.stream().mapToInt(i -> i).toArray());
+
+        int refreshSlot = cfg.getInt("party-finder.buttons.refresh.slot");
+        new RefreshButton(
+                gui,
+                refreshSlot,
+                createRefreshItem(),
+                null
+        );
 
         UUID uuid = player.getUniqueId();
 
@@ -55,7 +61,15 @@ public class PartyFinderGUI {
                     gui,
                     slot,
                     createPartyDetailsItem(playerParty),
-                    null
+                    "ViewPartyDetailsButton"
+            );
+
+            int readySlot = cfg.getInt("party-finder.buttons.ready-check.slot");
+            new ReadyCheckButton(
+                    gui,
+                    readySlot,
+                    createReadyCheckItem(),
+                    "ReadyCheckButton"
             );
 
         } else {
@@ -67,14 +81,14 @@ public class PartyFinderGUI {
                     gui,
                     publicSlot,
                     createPublicPartyItemStack(),
-                    null
+                    "CreatePublicPartyButton"
             );
 
             new CreatePrivatePartyButton(
                     gui,
                     privateSlot,
                     createPrivatePartyItemStack(),
-                    null
+                    "CreatePrivatePartyButton"
             );
         }
 
@@ -93,7 +107,7 @@ public class PartyFinderGUI {
                     gui,
                     partySlots.get(index),
                     item,
-                    null
+                    "joinPartyButton"
             );
 
             index++;
@@ -207,6 +221,51 @@ public class PartyFinderGUI {
         return item;
     }
 
+    private static ItemStack createRefreshItem() {
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+        String path = "party-finder.buttons.refresh";
+
+        ItemStack item = new ItemStack(Material.valueOf(cfg.getString(path + ".material")));
+        ItemMeta meta = item.getItemMeta();
+
+        meta.displayName(Component.text(cfg.getString(path + ".name").replace("&", "§")));
+
+        List<Component> lore = new ArrayList<>();
+        for (String line : cfg.get().getStringList(path + ".lore")) {
+            lore.add(Component.text(line.replace("&", "§")));
+        }
+
+        meta.lore(lore);
+
+        meta.getPersistentDataContainer().set(
+                new NamespacedKey(DungeonPlugin.instance, "gui_id"),
+                PersistentDataType.STRING,
+                "party-finder"
+        );
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack createReadyCheckItem() {
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+        String path = "party-finder.buttons.ready-check";
+
+        ItemStack item = new ItemStack(Material.valueOf(cfg.getString(path + ".material")));
+        ItemMeta meta = item.getItemMeta();
+
+        meta.displayName(Component.text(cfg.getString(path + ".name").replace("&", "§")));
+
+        List<Component> lore = new ArrayList<>();
+        for (String line : cfg.get().getStringList(path + ".lore")) {
+            lore.add(Component.text(line.replace("&", "§")));
+        }
+
+        meta.lore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private static List<Integer> parseSlots(List<String> list) {
         List<Integer> slots = new ArrayList<>();
         for (String s : list) {
@@ -216,4 +275,6 @@ public class PartyFinderGUI {
         }
         return slots;
     }
+
+
 }

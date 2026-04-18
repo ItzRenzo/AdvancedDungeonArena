@@ -50,6 +50,24 @@ party-finder:
         - ""
         - "&eClick to view details"
 
+    ready-check:
+      slot: 42
+      material: BEACON
+      name: "&aReady Check"
+      lore:
+        - "&7Open the ready check menu"
+        - ""
+        - "&eClick to open"
+
+    refresh:
+      slot: 0
+      material: CLOCK
+      name: "&eRefresh"
+      lore:
+        - "&7Refresh the party list"
+        - ""
+        - "&eClick to refresh"
+
   party-item:
     name: "&eParty of &f%leader%"
     lore:
@@ -115,6 +133,15 @@ party-details:
         - ""
         - "&cLeader only."
 
+    refresh:
+      slot: 42
+      material: CLOCK
+      name: "&eRefresh"
+      lore:
+        - "&7Refresh party details"
+        - ""
+        - "&eClick to refresh"
+
 
 
 kick-player:
@@ -123,6 +150,15 @@ kick-player:
   slots:
     border: ["0,1,2,3,4,5,6,7,8,45,46,47,48,49,50,51,52,53,9,17,18,26,27,35,36,44"]
     members: ["10,11,12,13,14,15,16,19,20,21,22,23,24,25"]
+  buttons:
+    refresh:
+      slot: 49
+      material: CLOCK
+      name: "&eRefresh"
+      lore:
+        - "&7Refresh member list"
+        - ""
+        - "&eClick to refresh"
   member:
     name: "&c%member%"
     lore:
@@ -157,6 +193,15 @@ ready:
       name: "&c✖ Not Ready"
       lore:
         - "&7You are not ready for battle"
+
+    refresh:
+      slot: 20
+      material: CLOCK
+      name: "&eRefresh"
+      lore:
+        - "&7Refresh ready status"
+        - ""
+        - "&eClick to refresh"
 
   status:
     ready:

@@ -22,6 +22,6 @@ public class LeavePartyButton extends ComponentButton {
 
         player.performCommand("ada partyleave");
 
-        PartyFinderGUI.createGUI(player);
+        PartyFinderGUI.open(player);
     }
 }
