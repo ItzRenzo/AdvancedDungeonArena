@@ -6,6 +6,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
+import su.nightexpress.dungeons.util.CooldownManager;
 
 public class SpecialButtonListener implements Listener {
 
@@ -14,7 +15,7 @@ public class SpecialButtonListener implements Listener {
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
-        if (!(e.getWhoClicked() instanceof Player)) return;
+        if (!(e.getWhoClicked() instanceof Player player)) return;
 
         // Check if clicking in the top inventory (the custom GUI)
         if (e.getClickedInventory() == null
@@ -22,6 +23,7 @@ public class SpecialButtonListener implements Listener {
 
         ItemStack clicked = e.getCurrentItem();
         if (clicked == null || clicked.getType().isAir()) return;
+
 
         // Delegate to ComponentManager
         ComponentManager.handleClick(e);

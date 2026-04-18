@@ -5,6 +5,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import su.nightexpress.dungeons.ComponentUtilities.ComponentButton;
+import su.nightexpress.dungeons.DungeonPlugin;
 import su.nightexpress.dungeons.gui.PartyDetailsGUI;
 
 public class CreatePrivatePartyButton extends ComponentButton {
@@ -21,6 +22,8 @@ public class CreatePrivatePartyButton extends ComponentButton {
         if (e.getCurrentItem() == null) return;
 
         player.performCommand("ada createparty");
-        PartyDetailsGUI.open(player);
+        if (DungeonPlugin.instance.getPartyManager().hasParty(player.getUniqueId())) {
+            PartyDetailsGUI.open(player);
+        }
     }
 }

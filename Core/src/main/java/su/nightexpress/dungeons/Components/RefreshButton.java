@@ -9,6 +9,7 @@ import org.bukkit.persistence.PersistentDataType;
 import su.nightexpress.dungeons.ComponentUtilities.ComponentButton;
 import su.nightexpress.dungeons.DungeonPlugin;
 import su.nightexpress.dungeons.gui.Utils.GUIRefreshManager;
+import su.nightexpress.dungeons.util.CooldownManager;
 
 public class RefreshButton extends ComponentButton {
 

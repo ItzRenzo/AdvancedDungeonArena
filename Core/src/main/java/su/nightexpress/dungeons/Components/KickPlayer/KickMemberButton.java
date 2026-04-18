@@ -9,8 +9,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import su.nightexpress.dungeons.ComponentUtilities.ComponentButton;
 import su.nightexpress.dungeons.DungeonPlugin;
+import su.nightexpress.dungeons.dungeon.Party.Party;
 import su.nightexpress.dungeons.dungeon.Party.PartyManager;
 import su.nightexpress.dungeons.gui.KickPlayerGUI;
+import su.nightexpress.dungeons.gui.PartyDetailsGUI;
 
 import java.util.UUID;
 
@@ -60,8 +62,13 @@ public class KickMemberButton extends ComponentButton {
         String targetName = player.getServer().getOfflinePlayer(targetUUID).getName();
         if (targetName == null) targetName = targetUUID.toString();
 
-        partyManager.kickMember(player.getUniqueId(), targetUUID);
-        player.sendMessage("§aYou kicked §f" + targetName + " §afrom the party.");
-        KickPlayerGUI.open(player);
+        player.performCommand("ada kick " + targetName);
+
+        Party party = partyManager.getPartyOf(player.getUniqueId());
+        if (party == null || party.getMembers().isEmpty()) {
+            PartyDetailsGUI.open(player);
+        } else {
+            KickPlayerGUI.open(player);
+        }
     }
 }
