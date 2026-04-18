@@ -128,3 +128,41 @@ kick-player:
     lore:
       - "&7Click to kick"
       - "&f%member% &7from your party."
+
+
+ready:
+  title: "&8Party Ready Check"
+  size: 27
+
+  slots:
+    border:
+      - "0,1,2,3,4,5,6,7,8"
+      - "18,19,20,21,22,23,24,25,26"
+
+    members:
+      - "10,11,12,13,14,15,16"
+
+    ready-button: 22
+    status: 13
+
+  button:
+    ready:
+      material: EMERALD
+      name: "&a✔ I am Ready"
+      lore:
+        - "&7Signal your readiness to the party"
+
+    not-ready:
+      material: REDSTONE
+      name: "&c✖ Not Ready"
+      lore:
+        - "&7You are not ready for battle"
+
+  status:
+    ready:
+      material: BEACON
+      name: "&aParty Fully Ready"
+
+    waiting:
+      material: BARRIER
+      name: "&cAwaiting Party Members"

@@ -214,6 +214,8 @@ public class DungeonManager extends AbstractManager<DungeonPlugin> {
         plugin.getPluginManager().callEvent(joinEvent);
         if (joinEvent.isCancelled()) return false;
 
+        player.closeInventory();
+
         // Create dungeon player and enter the dungeon.
         DungeonGamer gamer = new DungeonGamer(player, dungeon);
 

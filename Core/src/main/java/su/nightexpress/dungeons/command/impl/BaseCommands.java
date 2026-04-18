@@ -20,6 +20,7 @@ import su.nightexpress.dungeons.dungeon.spot.Spot;
 import su.nightexpress.dungeons.dungeon.spot.SpotState;
 import su.nightexpress.dungeons.dungeon.stage.Stage;
 import su.nightexpress.dungeons.gui.PartyFinderGUI;
+import su.nightexpress.dungeons.gui.ReadyCheckGUI;
 import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 import su.nightexpress.dungeons.kit.impl.Kit;
 import su.nightexpress.dungeons.selection.SelectionType;
@@ -387,7 +388,7 @@ public class BaseCommands {
         partyManager.createParty(player.getUniqueId());
         context.send(Lang.PARTY_CREATED);
 
-        partyManager.sendPartyInfo(player.getUniqueId());
+        //partyManager.sendPartyInfo(player.getUniqueId());
 
         return true;
     }
@@ -594,7 +595,6 @@ public class BaseCommands {
             }
 
             player.sendMessage("§aReady request sent to your party!");
-            partyManager.broadcastToParty(party, "§eLeader wants to queue for §f" + config.getId() + "§e. Type §f/dungeon ready §eto confirm!");
             return true;
         }
 
@@ -781,7 +781,14 @@ public class BaseCommands {
 
         partyManager.toggleReady(player.getUniqueId());
 
+
         Party party = partyManager.getPartyOf(player.getUniqueId());
+
+        // Open gui for all members to ready up
+        if (party != null) {
+            party.openReadyCheckGUI();
+        }
+
 
         if (partyManager.isPartyReady(party.getLeader())) {
             String dungeonId = partyManager.getPendingQueue(party.getLeader());
@@ -790,11 +797,14 @@ public class BaseCommands {
                 if (instance != null) {
                     partyManager.broadcastToParty(party, "§aAll members ready! Joining queue for §f" + dungeonId + "§a.");
                     instance.addPartyToQueue(party, null);
+                    party.closeInventoryForAllMembers();
                     partyManager.clearPendingQueue(party.getLeader());
                     partyManager.resetReady(party.getLeader());
                 }
             }
         }
+
+
 
         return true;
     }
@@ -831,8 +841,7 @@ public class BaseCommands {
         Party party = partyManager.getPartyOf(player.getUniqueId());
         party.setOpen(true);
 
-        player.sendMessage("§aOpen party created! Anyone can join with §f/dungeon joinparty " + player.getName() + "§a.");
-        partyManager.sendPartyInfo(player.getUniqueId());
+        //partyManager.sendPartyInfo(player.getUniqueId());
         return true;
     }
 
@@ -883,7 +892,7 @@ public class BaseCommands {
         partyManager.addMember(leader.getUniqueId(), player.getUniqueId());
         player.sendMessage("§aYou joined §f" + leader.getName() + "§a's party!");
         partyManager.broadcastToParty(party, "§f" + player.getName() + " §ajoined the party.");
-        partyManager.sendPartyInfo(player.getUniqueId());
+        //partyManager.sendPartyInfo(player.getUniqueId());
         return true;
     }
 

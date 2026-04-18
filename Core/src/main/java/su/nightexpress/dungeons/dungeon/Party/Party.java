@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import su.nightexpress.dungeons.gui.ReadyCheckGUI;
 
 import java.util.*;
 
@@ -94,6 +95,24 @@ public class Party {
 
     public int getSize() {
         return 1 + members.size();
+    }
+
+    public void openReadyCheckGUI() {
+        for (UUID memberId : getAllMembers()) {
+            Player player = Bukkit.getPlayer(memberId);
+            if (player != null && player.isOnline()) {
+                ReadyCheckGUI.open(player);
+            }
+        }
+    }
+
+    public void closeInventoryForAllMembers() {
+        for (UUID memberId : getAllMembers()) {
+            Player player = Bukkit.getPlayer(memberId);
+            if (player != null && player.isOnline()) {
+                player.closeInventory();
+            }
+        }
     }
 
     public boolean isMaxParty() {
