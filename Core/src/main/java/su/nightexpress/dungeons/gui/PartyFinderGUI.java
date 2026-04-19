@@ -100,6 +100,7 @@ public class PartyFinderGUI {
 
             if (index >= partySlots.size()) break;
             if (!party.isOpen()) continue;
+            if (party.isMember(uuid)) continue;
 
             ItemStack item = createPartyItem(party);
 

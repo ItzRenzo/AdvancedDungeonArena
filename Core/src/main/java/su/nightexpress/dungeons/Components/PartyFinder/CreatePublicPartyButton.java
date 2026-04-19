@@ -22,6 +22,7 @@ public class CreatePublicPartyButton extends ComponentButton {
         if (!(e.getWhoClicked() instanceof Player player)) return;
         if (e.getCurrentItem() == null) return;
 
+
         player.performCommand("ada createopenparty");
         if (DungeonPlugin.instance.getPartyManager().hasParty(player.getUniqueId())) {
             PartyDetailsGUI.open(player);
