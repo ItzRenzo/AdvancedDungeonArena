@@ -88,6 +88,11 @@ public class PlaceholderHook {
                 if (var.equalsIgnoreCase("lives")) {
                     return NumberUtil.format(gamer.getLives());
                 }
+
+                if (var.equalsIgnoreCase("class")) {
+                    return plugin.getClassManager().getClass(player);
+                }
+
                 return forDungeon(arena, var);
             }
 

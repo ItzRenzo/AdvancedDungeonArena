@@ -252,6 +252,28 @@
                     .withArguments(Arguments.player(CommandArguments.PLAYER).permission(Perms.COMMAND_BROWSE_OTHERS).optional())
                     .executes((context, arguments) -> openPartyFinder(plugin, context, arguments))
             );
+
+            root.branch(Commands.literal("setclass")
+                    .permission("dungeons.command.class.admin")
+                    .withArguments(
+                            Arguments.player("player"),
+                            Arguments.string("class")
+                    )
+                    .executes((context, args) -> setClassAdmin(plugin, context, args))
+            );
+
+            root.branch(Commands.literal("resetclass")
+                    .permission("dungeons.command.class.admin")
+                    .withArguments(
+                            Arguments.player("player")
+                    )
+                    .executes((context, args) -> resetClassAdmin(plugin, context, args))
+            );
+
+            root.branch(Commands.literal("listclasses")
+                    .permission("dungeons.command.class.admin")
+                    .executes((context, args) -> listClasses(plugin, context, args))
+            );
     
         }
     
@@ -896,6 +918,52 @@
             PartyFinderGUI.open(player);
             return true;
         }
+
+
+        private static boolean setClassAdmin(@NotNull DungeonPlugin plugin,
+                                             @NotNull CommandContext context,
+                                             @NotNull ParsedArguments args) {
+
+            Player target = args.getPlayer("player");
+            String className = args.getString("class");
+
+            if (!plugin.getClassManager().setClass(target, className)) {
+                target.sendMessage("§cInvalid class!");
+                return false;
+            }
+
+            target.sendMessage("§aYour class has been set to §e" + className);
+            return true;
+        }
+
+        private static boolean resetClassAdmin(@NotNull DungeonPlugin plugin,
+                                               @NotNull CommandContext context,
+                                               @NotNull ParsedArguments args) {
+
+            Player target = args.getPlayer("player");
+
+            plugin.getClassManager().removeClass(target);
+
+            target.sendMessage("§eYour class has been reset.");
+            return true;
+        }
+
+        private static boolean listClasses(@NotNull DungeonPlugin plugin,
+                                           @NotNull CommandContext context,
+                                           @NotNull ParsedArguments args) {
+
+            Player sender = context.getPlayerOrThrow();
+
+            sender.sendMessage("§aAvailable classes:");
+
+            for (String c : plugin.getClassManager().getValidClasses()) {
+                sender.sendMessage("§7- §e" + c);
+            }
+
+            return true;
+        }
     
     
     }
+
+

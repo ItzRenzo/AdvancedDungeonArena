@@ -1,6 +1,8 @@
 package su.nightexpress.dungeons;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import su.nightexpress.dungeons.ComponentUtilities.SpecialButtonListener;
@@ -16,6 +18,7 @@ import su.nightexpress.dungeons.data.DataHandler;
 import su.nightexpress.dungeons.dungeon.DungeonManager;
 import su.nightexpress.dungeons.dungeon.DungeonSetup;
 import su.nightexpress.dungeons.dungeon.Party.PartyManager;
+import su.nightexpress.dungeons.dungeon.classes.ClassManager;
 import su.nightexpress.dungeons.dungeon.criteria.registry.CriteriaRegistry;
 import su.nightexpress.dungeons.dungeon.player.SoloManager;
 import su.nightexpress.dungeons.dungeon.scale.ScaleBaseRegistry;
@@ -48,6 +51,8 @@ import su.nightexpress.nightcore.commands.command.NightCommand;
 import su.nightexpress.nightcore.config.PluginDetails;
 import su.nightexpress.nightcore.util.Plugins;
 
+import java.io.File;
+
 public class DungeonPlugin extends NightPlugin {
 
     private DataHandler dataHandler;
@@ -64,6 +69,8 @@ public class DungeonPlugin extends NightPlugin {
     private PartyManager partyManager;
     private SoloManager soloManager;
     private GUIConfigManager guiConfigManager;
+    private FileConfiguration classConfig;
+    private ClassManager classManager;
 
     public static DungeonPlugin instance;
 
@@ -120,6 +127,16 @@ public class DungeonPlugin extends NightPlugin {
 
         this.guiConfigManager = new GUIConfigManager(this);
 
+        File classFile = new File(getDataFolder(), "class.yml");
+
+        if (!classFile.exists()) {
+            saveResource("class.yml", false);
+        }
+
+        classConfig = YamlConfiguration.loadConfiguration(classFile);
+
+        classManager = new ClassManager(this, classConfig);
+
         this.loadCommands();
 
         if (Plugins.hasPlaceholderAPI()) {
@@ -128,6 +145,7 @@ public class DungeonPlugin extends NightPlugin {
         if (Plugins.isInstalled(HookId.MCMMO)) {
             McMMOHook.setup();
         }
+
 
 
         Bukkit.getPluginManager().registerEvents(new SpecialButtonListener(), this);
@@ -284,6 +302,10 @@ public class DungeonPlugin extends NightPlugin {
 
     public GUIConfigManager getGUIConfigManager() {
         return guiConfigManager;
+    }
+
+    public ClassManager getClassManager() {
+        return classManager;
     }
 
 }
