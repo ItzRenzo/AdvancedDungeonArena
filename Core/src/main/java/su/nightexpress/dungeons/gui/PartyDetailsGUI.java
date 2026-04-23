@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import su.nightexpress.dungeons.ComponentUtilities.StaticComponentManager;
 import su.nightexpress.dungeons.Components.PartyDetails.GoToKickMembersButton;
 import su.nightexpress.dungeons.Components.PartyDetails.LeavePartyButton;
+import su.nightexpress.dungeons.Components.PartyDetails.TogglePartyVisibilityButton;
 import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
 import su.nightexpress.dungeons.dungeon.Party.Party;
 import su.nightexpress.dungeons.DungeonPlugin;
@@ -63,6 +64,13 @@ public class PartyDetailsGUI {
 
         if (party.getLeader().equals(uuid)) {
             new GoToKickMembersButton(gui, kickSlot, createKickItem(), "go_to_kick_members");
+
+            new TogglePartyVisibilityButton(
+                    gui,
+                    cfg.getInt("party-details.slots.toggle"),
+                    createToggleItem(party),
+                    "toggle_party_visibility"
+            );
         }
 
         placeMembers(gui, party);
@@ -182,6 +190,36 @@ public class PartyDetailsGUI {
 
         meta.lore(lore);
         item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack createToggleItem(Party party) {
+
+        GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
+
+        String path = "party-details.buttons.toggle";
+
+        String state = party.isOpen() ? "public" : "private";
+
+        ItemStack item = new ItemStack(Material.valueOf(cfg.getString(path + "." + state + ".material")));
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta != null) {
+
+            String name = cfg.getString(path + "." + state + ".name")
+                    .replace("&", "§");
+
+            meta.displayName(Component.text(name));
+
+            List<Component> lore = new ArrayList<>();
+            for (String line : cfg.get().getStringList(path + "." + state + ".lore")) {
+                lore.add(Component.text(line.replace("&", "§")));
+            }
+
+            meta.lore(lore);
+            item.setItemMeta(meta);
+        }
+
         return item;
     }
 

@@ -100,6 +100,7 @@ party-details:
     leader: 4
     leave: 40
     kick: 44
+    toggle: 41
 
   leader:
     name: "&6👑 %leader%"
@@ -132,6 +133,18 @@ party-details:
         - "&7member kick menu."
         - ""
         - "&cLeader only."
+
+    toggle:
+      public:
+        material: LIME_DYE
+        name: "&aParty is Public"
+        lore:
+          - "&7Click to make it private"
+      private:
+        material: GRAY_DYE
+        name: "&cParty is Private"
+        lore:
+          - "&7Click to make it public"
 
     refresh:
       slot: 42

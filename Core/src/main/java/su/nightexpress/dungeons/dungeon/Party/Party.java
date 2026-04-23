@@ -119,6 +119,10 @@ public class Party {
         return members.size() >= maxParty - 1;
     }
 
+    public void toggleOpenStatusForParty() {
+        this.open = !this.open;
+    }
+
     public boolean isOpen() { return open; }
     public void setOpen(boolean open) { this.open = open;}
 }

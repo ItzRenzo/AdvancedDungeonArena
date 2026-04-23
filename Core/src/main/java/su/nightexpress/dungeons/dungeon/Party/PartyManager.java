@@ -256,6 +256,27 @@ public class PartyManager {
         return this.partyByLeader.values();
     }
 
+    public void togglePartyVisibility(@NotNull UUID playerId) {
+
+        Party party = this.getPartyOf(playerId);
+        if (party == null) return;
+
+        // Only leader can toggle
+        if (!party.isLeader(playerId)) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                player.sendMessage("§cOnly the party leader can change visibility.");
+            }
+            return;
+        }
+
+        party.toggleOpenStatusForParty();
+
+        String status = party.isOpen() ? "§aPublic" : "§cPrivate";
+
+        broadcastToParty(party, "§eParty visibility is now: " + status);
+    }
+
 
     @NotNull
     public Set<UUID> getReadyPlayers() {
