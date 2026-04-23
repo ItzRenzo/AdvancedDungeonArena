@@ -18,6 +18,7 @@ import su.nightexpress.dungeons.data.DataHandler;
 import su.nightexpress.dungeons.dungeon.DungeonManager;
 import su.nightexpress.dungeons.dungeon.DungeonSetup;
 import su.nightexpress.dungeons.dungeon.Party.PartyManager;
+import su.nightexpress.dungeons.dungeon.SimilarDungeonManager;
 import su.nightexpress.dungeons.dungeon.classes.ClassManager;
 import su.nightexpress.dungeons.dungeon.criteria.registry.CriteriaRegistry;
 import su.nightexpress.dungeons.dungeon.player.SoloManager;
@@ -71,6 +72,7 @@ public class DungeonPlugin extends NightPlugin {
     private GUIConfigManager guiConfigManager;
     private FileConfiguration classConfig;
     private ClassManager classManager;
+    private SimilarDungeonManager similarDungeonManager;
 
     public static DungeonPlugin instance;
 
@@ -126,6 +128,8 @@ public class DungeonPlugin extends NightPlugin {
         this.soloManager = new SoloManager();
 
         this.guiConfigManager = new GUIConfigManager(this);
+
+        this.similarDungeonManager = new SimilarDungeonManager(this);
 
         File classFile = new File(getDataFolder(), "class.yml");
 
@@ -306,6 +310,11 @@ public class DungeonPlugin extends NightPlugin {
 
     public ClassManager getClassManager() {
         return classManager;
+    }
+
+    @NotNull
+    public SimilarDungeonManager getSimilarDungeonManager() {
+        return this.similarDungeonManager;
     }
 
 }

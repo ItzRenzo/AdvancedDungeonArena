@@ -28,11 +28,9 @@
     import su.nightexpress.nightcore.commands.context.CommandContext;
     import su.nightexpress.nightcore.commands.context.ParsedArguments;
     import su.nightexpress.nightcore.core.config.CoreLang;
-    import java.util.UUID;
-    
-    import java.util.ArrayList;
-    import java.util.Collections;
-    
+
+    import java.util.*;
+
     public class BaseCommands {
     
         public static void load(@NotNull DungeonPlugin plugin, @NotNull HubNodeBuilder root) {
@@ -529,10 +527,10 @@
                 player.sendMessage("§cYou are in a party");
                 return false;
             }
-    
-    
+
+
             DungeonConfig config = arguments.get(CommandArguments.DUNGEON, DungeonConfig.class);
-            DungeonInstance instance = config.getInstance();
+            DungeonInstance instance = getBestInstance(plugin, config);
     
             if (!instance.isActive()) {
                 player.sendMessage("§cThat dungeon is not active.");
@@ -577,7 +575,7 @@
             }
 
             DungeonConfig config = arguments.get(CommandArguments.DUNGEON, DungeonConfig.class);
-            DungeonInstance instance = config.getInstance();
+            DungeonInstance instance = getBestInstance(plugin, config);
     
             if (!instance.isActive()) {
                 player.sendMessage("§cThat dungeon is not active.");
@@ -799,13 +797,16 @@
             if (party != null) {
                 party.openReadyCheckGUI();
             }
-    
-    
+
+
             if (partyManager.isPartyReady(party.getLeader())) {
                 String dungeonId = partyManager.getPendingQueue(party.getLeader());
                 if (dungeonId != null) {
-                    DungeonInstance instance = plugin.getDungeonManager().getInstanceById(dungeonId);
-                    if (instance != null) {
+                    // Dungeon decided by player leadesr
+                    DungeonInstance instancePickedByPartyLeader = plugin.getDungeonManager().getInstanceById(dungeonId);
+                    if (instancePickedByPartyLeader != null) {
+                        // The best dungeon for them in terms of availability
+                        DungeonInstance instance = getBestInstance(plugin, instancePickedByPartyLeader.getConfig());
                         partyManager.broadcastToParty(party, "§aAll members ready! Joining queue for §f" + dungeonId + "§a.");
                         instance.addPartyToQueue(party, null);
                         party.closeInventoryForAllMembers();
@@ -961,6 +962,61 @@
             }
 
             return true;
+        }
+
+
+        private static boolean isTrulyFree(@NotNull DungeonPlugin plugin, @NotNull DungeonInstance inst) {
+            // Has a solo player inside
+            if (inst.hasSoloPlayer()) return false;
+            // Has a party player inside
+            if (inst.hasPartyPlayer()) return false;
+            // Next in queue is a solo entry
+            if (inst.isQueueHeadSolo()) return false;
+            // Next in queue is a party entry
+            if (inst.isQueueHeadParty()) return false;
+            return true;
+        }
+
+        private static DungeonInstance getBestInstance(@NotNull DungeonPlugin plugin, @NotNull DungeonConfig requestedConfig) {
+            String dungeonId = requestedConfig.getId();
+            List<String> similar = plugin.getSimilarDungeonManager().getSimilar(dungeonId);
+
+            if (similar.isEmpty()) {
+                return requestedConfig.getInstance();
+            }
+
+            List<DungeonInstance> candidates = new ArrayList<>();
+            candidates.add(requestedConfig.getInstance());
+
+            for (String similarId : similar) {
+                DungeonInstance inst = plugin.getDungeonManager().getInstanceById(similarId);
+                if (inst != null && inst.isActive()) {
+                    candidates.add(inst);
+                }
+            }
+
+            // 1st priority: completely empty, not in raid, not reserved by solo/party
+            Optional<DungeonInstance> empty = candidates.stream()
+                    .filter(inst -> inst.countPlayers() == 0
+                            && inst.getQueueLength() == 0
+                            && inst.getState() != GameState.INGAME
+                            && isTrulyFree(plugin, inst))
+                    .findFirst();
+
+            if (empty.isPresent()) return empty.get();
+
+            // 2nd priority: not in raid, free of solo/party reservations, shortest queue
+            Optional<DungeonInstance> notInRaid = candidates.stream()
+                    .filter(inst -> inst.getState() != GameState.INGAME
+                            && isTrulyFree(plugin, inst))
+                    .min(Comparator.comparingInt(DungeonInstance::getQueueLength));
+
+            if (notInRaid.isPresent()) return notInRaid.get();
+
+            // 3rd priority: all reserved or in raid, just pick shortest queue
+            return candidates.stream()
+                    .min(Comparator.comparingInt(DungeonInstance::getQueueLength))
+                    .orElse(requestedConfig.getInstance());
         }
     
     

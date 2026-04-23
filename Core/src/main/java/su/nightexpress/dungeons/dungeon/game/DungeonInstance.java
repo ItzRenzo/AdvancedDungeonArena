@@ -1567,4 +1567,24 @@
             DungeonGamer firstPlayer = this.players.values().iterator().next();
             return plugin.getPartyManager().hasParty(firstPlayer.getPlayer().getUniqueId());
         }
+
+        public int getQueueLength() {
+            return joinQueue.size();
+        }
+
+        public boolean isQueueHeadSolo() {
+            QueueEntry head = joinQueue.peek();
+            if (head == null) return false;
+            Player first = head.firstPlayer();
+            if (first == null || !first.isOnline()) return false;
+            return head.isSolo() && plugin.getSoloManager().isSolo(first.getUniqueId());
+        }
+
+        public boolean isQueueHeadParty() {
+            QueueEntry head = joinQueue.peek();
+            if (head == null) return false;
+            Player first = head.firstPlayer();
+            if (first == null || !first.isOnline()) return false;
+            return plugin.getPartyManager().hasParty(first.getUniqueId());
+        }
     }
