@@ -195,7 +195,15 @@ public class PartyManager {
 
     public void handlePlayerDisconnect(@NotNull UUID playerId) {
         if (!hasParty(playerId)) return;
-        leaveParty(playerId);
+
+        Party party = getPartyOf(playerId);
+        if (party == null) return;
+
+        if (party.isLeader(playerId)) {
+            disbandParty(playerId);
+        } else {
+            leaveParty(playerId);
+        }
     }
 
     public void broadcastToParty(@NotNull Party party, @NotNull String message) {

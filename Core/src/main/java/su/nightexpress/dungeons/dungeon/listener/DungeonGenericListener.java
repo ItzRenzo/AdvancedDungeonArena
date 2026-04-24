@@ -21,7 +21,9 @@ public class DungeonGenericListener extends AbstractListener<DungeonPlugin> {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerQuit(PlayerQuitEvent event) {
+
         this.manager.leaveInstance(event.getPlayer());
+        this.plugin.getPartyManager().handlePlayerDisconnect(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
