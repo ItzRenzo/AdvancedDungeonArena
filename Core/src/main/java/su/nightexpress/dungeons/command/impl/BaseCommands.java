@@ -606,12 +606,15 @@
     
                 partyManager.setPendingQueue(player.getUniqueId(), config.getId());
                 partyManager.resetReady(player.getUniqueId());
-    
-    
+
+
+
+
                 // Party leader auto ready since he started it
                 if (party.isLeader(player.getUniqueId())) {
                     toggleReady(plugin, context, arguments);
                 }
+                party.openReadyCheckGUI();
     
                 player.sendMessage("§aReady request sent to your party!");
                 return true;
@@ -792,7 +795,7 @@
     
     
             Party party = partyManager.getPartyOf(player.getUniqueId());
-    
+
             // Open gui for all members to ready up
             if (party != null) {
                 party.openReadyCheckGUI();
