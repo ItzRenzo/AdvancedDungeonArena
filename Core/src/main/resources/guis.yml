@@ -97,6 +97,7 @@ party-details:
       - 19,20,21,22,23,24,25
       - 28,29,30,31,32,33,34
 
+    return: 0
     leader: 4
     leave: 40
     kick: 44
@@ -124,6 +125,12 @@ party-details:
         - "&7Leave your current party"
         - ""
         - "&eClick to leave"
+
+    return:
+      material: ARROW
+      name: "&7← Return"
+      lore:
+        - "&8Go back to the previous menu."
 
     kick:
       material: BARRIER
