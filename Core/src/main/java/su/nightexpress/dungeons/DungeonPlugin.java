@@ -145,6 +145,7 @@ public class DungeonPlugin extends NightPlugin {
 
         if (Plugins.hasPlaceholderAPI()) {
             PlaceholderHook.setup(this);
+            new VisualClassPlaceholder().register();
         }
         if (Plugins.isInstalled(HookId.MCMMO)) {
             McMMOHook.setup();

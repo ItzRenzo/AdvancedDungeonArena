@@ -54,8 +54,8 @@ public class ClassManager {
     }
 
     public String getClass(Player player) {
-        String clazz = player.getPersistentDataContainer().get(classKey, PersistentDataType.STRING);
-        return clazz != null ? clazz : "warrior";
+        String playerClass = player.getPersistentDataContainer().get(classKey, PersistentDataType.STRING);
+        return playerClass != null ? playerClass : "warrior"; // Default class?
     }
 
     public void removeClass(Player player) {
