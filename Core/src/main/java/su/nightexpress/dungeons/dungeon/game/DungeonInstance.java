@@ -259,29 +259,36 @@
             if (!joinQueue.isEmpty() && !hasSoloPlayer() && !hasPartyPlayer()) {
                 int maxPlayers = this.config.gameSettings().getMaxPlayers();
 
-                while (!joinQueue.isEmpty()) {
-                    QueueEntry entry = joinQueue.peek();
+                // In case of some weird bug just reset everything
+                try {
+                    while (!joinQueue.isEmpty()) {
+                        QueueEntry entry = joinQueue.peek();
 
-                    // remove offline players from entry
-                    entry.players().removeIf(p -> !p.isOnline());
-                    if (entry.players().isEmpty()) { joinQueue.poll(); continue; }
+                        // remove offline players from entry
+                        entry.players().removeIf(p -> !p.isOnline());
+                        if (entry.players().isEmpty()) { joinQueue.poll(); continue; }
 
-                    // check if fits
-                    if (maxPlayers > 0 && this.countPlayers() + entry.players().size() > maxPlayers) break;
+                        // check if fits
+                        if (maxPlayers > 0 && this.countPlayers() + entry.players().size() > maxPlayers) break;
 
-                    // solo check
-                    boolean entrySolo = entry.isSolo() &&
-                            plugin.getSoloManager().isSolo(entry.   firstPlayer().getUniqueId());
 
-                    if (entrySolo && this.countPlayers() > 0) break;
+                        // solo check
+                        boolean entrySolo = entry.isSolo() &&
+                                plugin.getSoloManager().isSolo(entry.   firstPlayer().getUniqueId());
 
-                    joinQueue.poll();
-                    for (Player p : entry.players()) {
-                        if (this.manager.isPlaying(p)) continue;
-                        this.manager.enterInstance(p, this, entry.kit(), false);
+                        if (entrySolo && this.countPlayers() > 0) break;
+
+                        joinQueue.poll();
+                        for (Player p : entry.players()) {
+                            if (this.manager.isPlaying(p)) continue;
+                            this.manager.enterInstance(p, this, entry.kit(), false);
+                        }
+
+                        if (entrySolo) break;
                     }
-
-                    if (entrySolo) break;
+                } catch (Exception e) {
+                    plugin.getLogger().severe("[DungeonInstance] Error processing join queue: " + e.getMessage());
+                    joinQueue.clear(); // clear the queue to prevent repeated failures
                 }
             }
 
@@ -610,7 +617,7 @@
                 if (plugin.getSoloManager().isSolo(firstPlayer.getPlayer().getUniqueId())) {
                     if (!this.isInQueue(player)) {
                         this.addToQueue(player, null);
-                        player.sendMessage("§eThis dungeon has a solo player, you have been added to the queue.");
+                        player.sendMessage(net.kyori.adventure.text.Component.text("This dungeon has a solo player, you have been added to the queue.").color(net.kyori.adventure.text.format.NamedTextColor.YELLOW));
                     }
                     return false; // stops the join entirely
                 }
@@ -621,7 +628,7 @@
                     if (party != null && !party.isMember(player.getUniqueId())) {
                         if (!this.isInQueue(player)) {
                             this.addToQueue(player, null);
-                            player.sendMessage("§eThis dungeon is reserved for a party, you have been added to the queue.");
+                            player.sendMessage(net.kyori.adventure.text.Component.text("This dungeon is reserved for a party, you have been added to the queue.").color(net.kyori.adventure.text.format.NamedTextColor.YELLOW));
                         }
                         return false;
                     }
@@ -723,7 +730,13 @@
             if (this.config.gameSettings().isScoreboardEnabled() && DungeonUtils.hasPacketLibrary()) {
                 gamer.addBoard();
             }
-    
+            // Add orbs
+            String visualClass = plugin.getClassManager().getClass(player);
+            if (visualClass != null && !visualClass.isEmpty()) {
+                plugin.getOrbManager().giveOrbs(player, visualClass);
+            }
+
+
             // this.updateSigns();
     
             if (this.state == GameState.INGAME) {
@@ -731,6 +744,9 @@
                 player.setGameMode(GameMode.SPECTATOR);
                 gamer.teleport(this.getSpawnLocation());
             }
+
+
+
         }
     
         @Override
@@ -745,10 +761,11 @@
                 plugin.getPartyManager().leaveParty(playerId); // handles both leader (disband) and member (leave)
             }
 
-
+            plugin.getOrbManager().confiscateAll(player);
             player.closeInventory();
             gamer.removeBoard();
             this.players.remove(player.getUniqueId());
+            plugin.getSoloManager().clearOnLeave(player.getUniqueId()); // If solo mode, then remove from solo mode
 
 
             System.out.println("GameState: " + this.state);

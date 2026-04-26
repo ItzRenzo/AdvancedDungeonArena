@@ -40,6 +40,7 @@
                 .executes((context, arguments) -> {
                     plugin.doReload(context.getSender());
                     plugin.getGUIConfigManager().reload();
+                    plugin.getOrbManager().reload();
                     return true;
                 })
             );
@@ -272,7 +273,16 @@
                     .permission("dungeons.command.class.admin")
                     .executes((context, args) -> listClasses(plugin, context, args))
             );
-    
+
+
+            root.branch(Commands.literal("giveorb")
+                    .permission("dungeons.command.orb.admin")
+                    .withArguments(
+                            Arguments.player("player"),
+                            Arguments.string("class")
+                    )
+                    .executes((context, args) -> giveOrb(plugin, context, args))
+            );
         }
     
         private static boolean getWand(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
@@ -596,6 +606,15 @@
                     player.sendMessage("§cYour party was disbanded (all members offline).");
                     return false;
                 }
+
+
+
+                //If only 1 member, treat as solo queue
+                if (party.getAllMembers().size() == 1) {
+                    partyManager.leaveParty(player.getUniqueId());
+                    CooldownManager.clearCooldown(player); // bypass cooldown since this is automatic
+                    return joinSoloQueue(plugin, context, arguments);
+                }
     
                 for (UUID memberId : party.getAllMembers()) {
                     if (plugin.getDungeonManager().isPlaying(memberId)) {
@@ -612,7 +631,7 @@
 
                 // Party leader auto ready since he started it
                 if (party.isLeader(player.getUniqueId())) {
-                    toggleReady(plugin, context, arguments);
+                    partyManager.toggleReady(player.getUniqueId());
                 }
                 party.openReadyCheckGUI();
     
@@ -891,6 +910,11 @@
                 player.sendMessage("§cYou must specify the party leader's name.");
                 return false;
             }
+
+            if (plugin.getDungeonManager().isPlaying(leader)) {
+                player.sendMessage("§cThat party leader is already in a dungeon.");
+                return false;
+            }
     
             if (party.isMaxParty()) {
                 player.sendMessage("§cThat party is full.");
@@ -1020,6 +1044,24 @@
             return candidates.stream()
                     .min(Comparator.comparingInt(DungeonInstance::getQueueLength))
                     .orElse(requestedConfig.getInstance());
+        }
+
+        private static boolean giveOrb(@NotNull DungeonPlugin plugin,
+                                       @NotNull CommandContext context,
+                                       @NotNull ParsedArguments args) {
+
+            Player target = args.getPlayer("player");
+            String className = args.getString("class");
+
+            if (!plugin.getClassManager().getValidClasses().contains(className.toLowerCase())) {
+                context.getSender().sendMessage("§cInvalid class: §f" + className);
+                return false;
+            }
+
+            plugin.getOrbManager().giveOrbs(target, className);
+            context.getSender().sendMessage("§aGave §f" + className + " §aorbs to §f" + target.getName() + "§a.");
+            target.sendMessage("§aYou received orbs for class §e" + className + "§a.");
+            return true;
         }
     
     

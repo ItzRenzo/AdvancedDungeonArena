@@ -1,0 +1,27 @@
+classes:
+  warrior:
+    orbs:
+      - orbname: "&c&lWarrior Orb"
+        lore:
+          - "&7Forged for warriors"
+          - "&7Class: &e%visualclass_name%"
+        texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjFmMjNlYjM5NWNiNTE2N2VmMzk4NmYwYWZhZWI1NTY1M2M2YTI2OTMwMjE1OGQ2ZmZhNTUxZTE1MWEyNThlZiJ9fX0="
+        commands:
+          - "effect give %player% minecraft:strength 60 1"
+
+      - orbname: "&c&lBattle Orb"
+        lore:
+          - "&7A second warrior relic"
+        texture: "abc123yourtexturehashhere"
+        commands:
+          - "give %player% diamond 1"
+
+  mage:
+    orbs:
+      - orbname: "&9&lMage Orb"
+        lore:
+          - "&7Infused with arcane energy"
+        texture: "abc123yourtexturehashhere"
+        commands:
+          - "effect give %player% speed 10 1"
+          - "say Mage power activated"

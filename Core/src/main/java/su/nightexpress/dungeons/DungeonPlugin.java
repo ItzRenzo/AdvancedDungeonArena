@@ -21,6 +21,7 @@ import su.nightexpress.dungeons.dungeon.Party.PartyManager;
 import su.nightexpress.dungeons.dungeon.SimilarDungeonManager;
 import su.nightexpress.dungeons.dungeon.classes.ClassManager;
 import su.nightexpress.dungeons.dungeon.criteria.registry.CriteriaRegistry;
+import su.nightexpress.dungeons.dungeon.listener.OrbListener;
 import su.nightexpress.dungeons.dungeon.player.SoloManager;
 import su.nightexpress.dungeons.dungeon.scale.ScaleBaseRegistry;
 import su.nightexpress.dungeons.dungeon.script.action.ActionRegistry;
@@ -51,6 +52,7 @@ import su.nightexpress.nightcore.NightPlugin;
 import su.nightexpress.nightcore.commands.command.NightCommand;
 import su.nightexpress.nightcore.config.PluginDetails;
 import su.nightexpress.nightcore.util.Plugins;
+import su.nightexpress.dungeons.kit.OrbManager;
 
 import java.io.File;
 
@@ -73,6 +75,7 @@ public class DungeonPlugin extends NightPlugin {
     private FileConfiguration classConfig;
     private ClassManager classManager;
     private SimilarDungeonManager similarDungeonManager;
+    private OrbManager orbManager;
 
     public static DungeonPlugin instance;
 
@@ -140,6 +143,16 @@ public class DungeonPlugin extends NightPlugin {
         classConfig = YamlConfiguration.loadConfiguration(classFile);
 
         classManager = new ClassManager(this, classConfig);
+
+        File orbFile = new File(getDataFolder(), "orb.yml");
+
+        if (!orbFile.exists()) {
+            saveResource("orb.yml", false);
+        }
+
+        FileConfiguration orbConfig = YamlConfiguration.loadConfiguration(orbFile);
+        orbManager = new OrbManager(this, orbConfig);
+        Bukkit.getPluginManager().registerEvents(new OrbListener(this, orbManager), this);
 
         this.loadCommands();
 
@@ -311,6 +324,10 @@ public class DungeonPlugin extends NightPlugin {
 
     public ClassManager getClassManager() {
         return classManager;
+    }
+
+    public OrbManager getOrbManager() {
+        return orbManager;
     }
 
     @NotNull
