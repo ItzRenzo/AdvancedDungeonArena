@@ -1006,42 +1006,43 @@
             String dungeonId = requestedConfig.getId();
             List<String> similar = plugin.getSimilarDungeonManager().getSimilar(dungeonId);
 
-            if (similar.isEmpty()) {
-                return requestedConfig.getInstance();
-            }
+            DungeonInstance requested = requestedConfig.getInstance();
 
+            // If no similar dungeons, just return requested
+            if (similar.isEmpty()) return requested;
+
+            // Build full candidate list
             List<DungeonInstance> candidates = new ArrayList<>();
-            candidates.add(requestedConfig.getInstance());
-
+            candidates.add(requested);
             for (String similarId : similar) {
                 DungeonInstance inst = plugin.getDungeonManager().getInstanceById(similarId);
-                if (inst != null && inst.isActive()) {
-                    candidates.add(inst);
+                if (inst != null && inst.isActive()) candidates.add(inst);
+            }
+
+            // 1st priority: requested is truly free
+            if (isTrulyFree(plugin, requested) && requested.getState() != GameState.INGAME) {
+                return requested;
+            }
+
+            // 2nd priority: any similar that is truly free and not in raid
+            for (String similarId : similar) {
+                DungeonInstance inst = plugin.getDungeonManager().getInstanceById(similarId);
+                if (inst != null && inst.isActive() && isTrulyFree(plugin, inst) && inst.getState() != GameState.INGAME) {
+                    return inst;
                 }
             }
 
-            // 1st priority: completely empty, not in raid, not reserved by solo/party
-            Optional<DungeonInstance> empty = candidates.stream()
-                    .filter(inst -> inst.countPlayers() == 0
-                            && inst.getQueueLength() == 0
-                            && inst.getState() != GameState.INGAME
-                            && isTrulyFree(plugin, inst))
-                    .findFirst();
-
-            if (empty.isPresent()) return empty.get();
-
-            // 2nd priority: not in raid, free of solo/party reservations, shortest queue
+            // 3rd priority: not in raid, shortest queue
             Optional<DungeonInstance> notInRaid = candidates.stream()
-                    .filter(inst -> inst.getState() != GameState.INGAME
-                            && isTrulyFree(plugin, inst))
+                    .filter(inst -> inst.getState() != GameState.INGAME)
                     .min(Comparator.comparingInt(DungeonInstance::getQueueLength));
 
             if (notInRaid.isPresent()) return notInRaid.get();
 
-            // 3rd priority: all reserved or in raid, just pick shortest queue
+            // 4th priority: all in raid, shortest queue
             return candidates.stream()
                     .min(Comparator.comparingInt(DungeonInstance::getQueueLength))
-                    .orElse(requestedConfig.getInstance());
+                    .orElse(requested);
         }
 
         private static boolean giveOrb(@NotNull DungeonPlugin plugin,
