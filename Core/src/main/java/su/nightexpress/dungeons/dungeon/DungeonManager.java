@@ -583,5 +583,21 @@ public class DungeonManager extends AbstractManager<DungeonPlugin> {
                 .toList();
     }
 
+    public void groupRandomQueuePlayers(@NotNull DungeonInstance targetInstance, @NotNull String dungeonId) {
+        List<String> similar = plugin.getSimilarDungeonManager().getSimilar(dungeonId);
+
+        List<DungeonInstance> candidates = new ArrayList<>();
+        for (String similarId : similar) {
+            DungeonInstance inst = getInstanceById(similarId);
+            if (inst != null && inst.isActive() && inst != targetInstance) {
+                candidates.add(inst);
+            }
+        }
+
+        for (DungeonInstance inst : candidates) {
+            inst.drainRandomQueueInto(targetInstance);
+        }
+    }
+
 
 }

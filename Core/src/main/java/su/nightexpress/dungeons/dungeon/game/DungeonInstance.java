@@ -284,6 +284,12 @@
                             this.manager.enterInstance(p, this, entry.kit(), false);
                         }
 
+                        // Group random queue players from similar dungeons into this instance
+                        if (!entrySolo && entry.players().size() == 1) {
+                            this.manager.groupRandomQueuePlayers(this, this.config.getId());
+                        }
+
+
                         if (entrySolo) break;
                     }
                 } catch (Exception e) {
@@ -1507,6 +1513,8 @@
                     this.manager.enterInstance(p, this, entry.kit(), false);
                 }
 
+
+
                 if (entrySolo) break;
             }
         }
@@ -1604,5 +1612,20 @@
             Player first = head.firstPlayer();
             if (first == null || !first.isOnline()) return false;
             return plugin.getPartyManager().hasParty(first.getUniqueId());
+        }
+
+        public void drainRandomQueueInto(@NotNull DungeonInstance target) {
+            Iterator<QueueEntry> it = joinQueue.iterator();
+            while (it.hasNext()) {
+                QueueEntry entry = it.next();
+                if (entry.isSolo()) continue; // skip solo entries
+                if (entry.players().size() > 1) continue; // skip party entries
+
+                it.remove();
+                for (Player p : entry.players()) {
+                    if (manager.isPlaying(p)) continue;
+                    manager.enterInstance(p, target, entry.kit(), false);
+                }
+            }
         }
     }
