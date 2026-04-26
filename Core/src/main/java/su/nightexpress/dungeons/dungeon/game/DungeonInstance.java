@@ -298,7 +298,8 @@
                 if (readyToStart) {
                     this.state = GameState.READY;
 
-                    if (this.config.gameSettings().isStartAnnouncement()) {
+                    // Only show the message if the raid
+                    if (this.config.gameSettings().isStartAnnouncement() && !hasSoloPlayer() && !hasPartyPlayer()) {
                         Players.getOnline().forEach(player -> {
                             if (this.plugin.getDungeonManager().isPlaying(player)) return;
                             if (!this.hasPermission(player)) return;

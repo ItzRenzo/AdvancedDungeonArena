@@ -607,8 +607,6 @@
                     return false;
                 }
 
-
-
                 //If only 1 member, treat as solo queue
                 if (party.getAllMembers().size() == 1) {
                     partyManager.leaveParty(player.getUniqueId());
