@@ -255,7 +255,7 @@
             root.branch(Commands.literal("setclass")
                     .permission("dungeons.command.class.admin")
                     .withArguments(
-                            Arguments.player("player"),
+                            Arguments.player("player").optional(),
                             Arguments.string("class")
                     )
                     .executes((context, args) -> setClassAdmin(plugin, context, args))
@@ -954,10 +954,11 @@
             String className = args.getString("class");
 
             if (!plugin.getClassManager().setClass(target, className)) {
-                target.sendMessage("§cInvalid class!");
+                context.getSender().sendMessage("§cInvalid class: §f" + className);
                 return false;
             }
 
+            context.getSender().sendMessage("§aSet §f" + target.getName() + "§a's class to §e" + className);
             target.sendMessage("§aYour class has been set to §e" + className);
             return true;
         }
