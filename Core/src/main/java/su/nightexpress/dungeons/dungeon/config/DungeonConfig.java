@@ -55,6 +55,7 @@ public class DungeonConfig extends AbstractFileData<DungeonPlugin> {
     private boolean broken;
     private String  worldName;
     private Cuboid  cuboid;
+    private BlockPos finishChestPos;
 
     private String       startLevelId;
     private String       startStageId;
@@ -76,7 +77,6 @@ public class DungeonConfig extends AbstractFileData<DungeonPlugin> {
         this.gameSettings = new GameSettings(this);
         this.lobbyPos = ExactPos.empty();
     }
-
     @Override
     protected boolean onLoad(@NotNull FileConfig config) {
         this.setWorldName(String.valueOf(config.getString("WorldName")));
@@ -87,8 +87,8 @@ public class DungeonConfig extends AbstractFileData<DungeonPlugin> {
         this.setPrefix(config.getString("Prefix", TagWrappers.GRAY.wrap("[" + Placeholders.DUNGEON_NAME + "]")));
         this.setIcon(config.getCosmeticItem("Icon"));
         this.setLobbyPos(ExactPos.read(config, "LobbyPos"));
-
-        BlockPos cMin = BlockPos.read(config, "Cuboid.Min");
+        String posStr = config.getString("FinishChestPos");
+        this.finishChestPos = posStr == null || posStr.isEmpty() ? null : BlockPos.deserialize(posStr);        BlockPos cMin = BlockPos.read(config, "Cuboid.Min");
         BlockPos cMax = BlockPos.read(config, "Cuboid.Max");
         this.setCuboid(new Cuboid(cMin, cMax));
 
@@ -118,6 +118,7 @@ public class DungeonConfig extends AbstractFileData<DungeonPlugin> {
         config.set("Description", this.description);
         config.set("Prefix", this.prefix);
         config.set("Icon", this.getIcon());
+        config.set("FinishChestPos", this.finishChestPos == null ? "" : this.finishChestPos.serialize());
         this.lobbyPos.write(config, "LobbyPos");
 
         this.cuboid.getMin().write(config, "Cuboid.Min");
@@ -179,6 +180,15 @@ public class DungeonConfig extends AbstractFileData<DungeonPlugin> {
     @NotNull
     private String getSubPath(@NotNull String sub) {
         return this.getFolderPath() + sub;
+    }
+
+    @Nullable
+    public BlockPos getFinishChestPos() {
+        return this.finishChestPos;
+    }
+
+    public void setFinishChestPos(@Nullable BlockPos finishChestPos) {
+        this.finishChestPos = finishChestPos;
     }
 
     private void loadStages() {

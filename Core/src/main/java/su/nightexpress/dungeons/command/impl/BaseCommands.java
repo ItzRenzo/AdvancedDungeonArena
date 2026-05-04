@@ -105,6 +105,8 @@
                     }))
                 .executes((context, arguments) -> setStage(plugin, context, arguments))
             );
+
+
     
             root.branch(Commands.literal("setlevel")
                 .playerOnly()

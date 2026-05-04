@@ -14,7 +14,7 @@ public class ActionId {
     public static final String SPAWN_MOB      = "spawn_mob";
     public static final String GIVE_REWARD = "give_reward";
     public static final String GENERATE_LOOT = "generate_loot";
-
+    public static final String SPAWN_CHEST = "spawn_chest";
     public static final String CREATE_VAR = "create_var";
     public static final String MODIFY_VAR = "modify_var";
     public static final String REMOVE_VAR = "remove_var";

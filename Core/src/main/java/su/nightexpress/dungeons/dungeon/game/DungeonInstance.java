@@ -38,6 +38,7 @@
     import su.nightexpress.dungeons.dungeon.player.DungeonGamer;
     import su.nightexpress.dungeons.dungeon.player.PlayerSnapshot;
     import su.nightexpress.dungeons.dungeon.player.QueueEntry;
+    import su.nightexpress.dungeons.dungeon.reward.FinishChestRewardManager;
     import su.nightexpress.dungeons.dungeon.reward.GameReward;
     import su.nightexpress.dungeons.dungeon.reward.Reward;
     import su.nightexpress.dungeons.dungeon.spot.Spot;
@@ -159,6 +160,7 @@
         }
 
         public void stop() {
+            FinishChestRewardManager.cleanupRewardChests(this);
             this.gamersSnapshot.clear();
             this.gamersSnapshot.addAll(this.getPlayers());
 

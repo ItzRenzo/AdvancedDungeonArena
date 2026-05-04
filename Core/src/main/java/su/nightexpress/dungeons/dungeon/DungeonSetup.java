@@ -218,6 +218,54 @@ public class DungeonSetup extends AbstractManager<DungeonPlugin> {
         return true;
     }
 
+    public boolean setLootChest(@NotNull Player player, @NotNull DungeonConfig config, @NotNull String name) {
+        LootChest lootChest = config.getLootChestById(name);
+        if (lootChest == null) {
+            Lang.SETUP_LOOT_CHEST_INVALID.message().send(player);
+            return false;
+        }
+
+        Block block = player.getTargetBlock(null, 20);
+        if (!(block.getState() instanceof Container)) {
+            Lang.SETUP_LOOT_CHEST_NOT_CONTAINER.message().send(player);
+            return false;
+        }
+
+        BlockPos blockPos = BlockPos.from(block);
+        if (!config.isWorld(player.getWorld()) || !config.isInProtection(blockPos)) {
+            Lang.SETUP_SELECTION_POSITION_OUT_OF_PROTECTION.message().send(player, replacer -> replacer.replace(config.replacePlaceholders()));
+            return false;
+        }
+
+        lootChest.setBlockPos(blockPos);
+        lootChest.save();
+        config.validate();
+
+        Lang.SETUP_LOOT_CHEST_BLOCK_SET.message().send(player, replacer -> replacer.replace(lootChest.replacePlaceholders()));
+        return true;
+    }
+
+    public boolean setFinishChest(@NotNull Player player, @NotNull DungeonConfig config) {
+        Block block = player.getTargetBlock(null, 20);
+        if (block == null || block.getType().isAir()) {
+            Lang.SETUP_SELECTION_NO_POSITIONS.message().send(player); // Or a custom message
+            return false;
+        }
+
+        BlockPos blockPos = BlockPos.from(block);
+        blockPos = new BlockPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
+        if (!config.isWorld(player.getWorld()) || !config.isInProtection(blockPos)) {
+            Lang.SETUP_SELECTION_POSITION_OUT_OF_PROTECTION.message().send(player, replacer -> replacer.replace(config.replacePlaceholders()));
+            return false;
+        }
+
+        config.setFinishChestPos(blockPos);
+        config.save();
+
+        Lang.SETUP_LOOT_CHEST_BLOCK_SET.message().send(player, replacer -> replacer.replace(Placeholders.GENERIC_NAME, "Finish Chest"));
+        return true;
+    }
+
     public boolean createLevel(@NotNull Player player, @NotNull DungeonConfig config, @NotNull String name) {
         ExactPos blockPos = ExactPos.from(player.getLocation());
         if (!config.isWorld(player.getWorld()) || !config.isInProtection(blockPos.toBlockPos())) {

@@ -185,6 +185,14 @@ public class SetupCommands {
             )
         );
 
+        root.branch(Commands.literal("setfinishchest")
+                .playerOnly()
+                .description(Lang.COMMAND_SET_LOBBY_DESC) // Reuse or create a new description in Lang.java
+                .permission(Perms.COMMAND_SET_LOBBY) // Reuse or create a new permission in Perms.java
+                .withArguments(CommandArguments.forDungeon(plugin))
+                .executes((context, arguments) -> setFinishChest(plugin, context, arguments))
+        );
+
         root.branch(Commands.hub("spot")
             .description(Lang.COMMAND_SPOT_DESC)
             .permission(Perms.COMMAND_SPOT)
@@ -261,6 +269,14 @@ public class SetupCommands {
         String name = arguments.getString(CommandArguments.NAME);
 
         plugin.getDungeonSetup().createSpawner(player, dungeon, name);
+        return true;
+    }
+
+    private static boolean setFinishChest(@NotNull DungeonPlugin plugin, @NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        DungeonConfig dungeon = arguments.get(CommandArguments.DUNGEON, DungeonConfig.class);
+
+        plugin.getDungeonSetup().setFinishChest(player, dungeon);
         return true;
     }
 

@@ -18,6 +18,7 @@ import su.nightexpress.dungeons.dungeon.scale.ScalableAmount;
 import su.nightexpress.dungeons.dungeon.script.action.ActionInfo;
 import su.nightexpress.dungeons.dungeon.script.action.impl.DungeonEndAction;
 import su.nightexpress.dungeons.dungeon.script.action.impl.RunCommandAction;
+import su.nightexpress.dungeons.dungeon.script.action.impl.SpawnChestAction;
 import su.nightexpress.dungeons.dungeon.script.action.impl.SpawnMobAction;
 import su.nightexpress.dungeons.dungeon.script.condition.ConditionInfo;
 import su.nightexpress.dungeons.dungeon.script.condition.impl.AliveMobsAmountCondition;
@@ -86,8 +87,8 @@ public class DungeonUtils {
 
         Map<String, ActionInfo> endActionMap = new LinkedHashMap<>();
         endActionMap.put("finish_dungeon", new ActionInfo(null, 100D, new DungeonEndAction(10, true)));
+        endActionMap.put("spawn_chest", new ActionInfo(null, 99D, new SpawnChestAction()));
         DungeonEventHandler onFinishHandler = new DungeonEventHandler("onStageFinish", DungeonEventType.STAGE_FINISHED, new HashMap<>(), endActionMap);
-
         Map<String, StageTask> taskMap = new HashMap<>();
         StageTask stageTask = new StageTask("kill_zombies", new KillMobTask(zombieId), new TaskParams("Kill Zombies", UniInt.of(10, 10), false, true));
         taskMap.put(stageTask.getId(), stageTask);

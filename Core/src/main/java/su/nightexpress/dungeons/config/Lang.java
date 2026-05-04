@@ -137,7 +137,8 @@ public class Lang implements LangContainer {
     public static final MessageLocale SETUP_SPAWNER_CREATED = LangEntry.builder("Setup.Spawner.Created").chatMessage(
         GRAY.wrap("Spawner created: " + GREEN.wrap(GENERIC_NAME) + "!"));
 
-
+    public static final MessageLocale SETUP_LOOT_CHEST_BLOCK_SET = LangEntry.builder("Setup.LootChest.BlockSet").chatMessage(
+            GRAY.wrap("Loot chest block position updated!"));
 
     public static final MessageLocale SETUP_LEVEL_EXISTS = LangEntry.builder("Setup.Level.AlreadyExists").chatMessage(
         SOFT_RED.wrap("Level with such ID already exists."));
