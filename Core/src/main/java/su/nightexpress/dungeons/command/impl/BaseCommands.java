@@ -15,6 +15,7 @@
     import su.nightexpress.dungeons.dungeon.game.DungeonInstance;
     import su.nightexpress.dungeons.dungeon.level.Level;
     import su.nightexpress.dungeons.dungeon.player.SoloManager;
+    import su.nightexpress.dungeons.dungeon.reward.FinishChestRewardManager;
     import su.nightexpress.dungeons.dungeon.spot.Spot;
     import su.nightexpress.dungeons.dungeon.spot.SpotState;
     import su.nightexpress.dungeons.dungeon.stage.Stage;
@@ -41,6 +42,7 @@
                     plugin.doReload(context.getSender());
                     plugin.getGUIConfigManager().reload();
                     plugin.getOrbManager().reload();
+                    FinishChestRewardManager.reload();
                     return true;
                 })
             );

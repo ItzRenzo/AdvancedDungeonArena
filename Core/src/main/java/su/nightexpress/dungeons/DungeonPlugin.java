@@ -21,18 +21,17 @@ import su.nightexpress.dungeons.dungeon.Party.PartyManager;
 import su.nightexpress.dungeons.dungeon.SimilarDungeonManager;
 import su.nightexpress.dungeons.dungeon.classes.ClassManager;
 import su.nightexpress.dungeons.dungeon.criteria.registry.CriteriaRegistry;
+import su.nightexpress.dungeons.dungeon.reward.FinishChestListener;
 import su.nightexpress.dungeons.dungeon.listener.OrbListener;
 import su.nightexpress.dungeons.dungeon.player.SoloManager;
+import su.nightexpress.dungeons.dungeon.reward.FinishChestRewardManager;
 import su.nightexpress.dungeons.dungeon.scale.ScaleBaseRegistry;
 import su.nightexpress.dungeons.dungeon.script.action.ActionRegistry;
 import su.nightexpress.dungeons.dungeon.script.condition.ConditionRegistry;
 import su.nightexpress.dungeons.dungeon.script.number.NumberComparators;
 import su.nightexpress.dungeons.dungeon.script.task.TaskRegistry;
-import su.nightexpress.dungeons.gui.GuiListener.KickPlayerListener;
-import su.nightexpress.dungeons.gui.GuiListener.ReadyCheckListener;
+import su.nightexpress.dungeons.gui.GuiListener.*;
 import su.nightexpress.dungeons.gui.Utils.GUIConfigManager;
-import su.nightexpress.dungeons.gui.GuiListener.PartyDetailsListener;
-import su.nightexpress.dungeons.gui.GuiListener.PartyFinderListener;
 import su.nightexpress.dungeons.hook.HookId;
 import su.nightexpress.dungeons.hook.impl.McMMOHook;
 import su.nightexpress.dungeons.hook.impl.PlaceholderHook;
@@ -163,7 +162,8 @@ public class DungeonPlugin extends NightPlugin {
         if (Plugins.isInstalled(HookId.MCMMO)) {
             McMMOHook.setup();
         }
-
+        FinishChestRewardManager.init(this);
+        getServer().getPluginManager().registerEvents(new FinishChestListener(), this);
 
 
         Bukkit.getPluginManager().registerEvents(new SpecialButtonListener(), this);
@@ -171,6 +171,7 @@ public class DungeonPlugin extends NightPlugin {
         Bukkit.getPluginManager().registerEvents(new PartyDetailsListener(), this);
         Bukkit.getPluginManager().registerEvents(new KickPlayerListener(), this);
         Bukkit.getPluginManager().registerEvents(new ReadyCheckListener(), this);
+        Bukkit.getPluginManager().registerEvents(new FinishedChestRewardListener(), this);
 
     }
 
@@ -204,6 +205,7 @@ public class DungeonPlugin extends NightPlugin {
         BoardPluginRegistry.clear();
         Keys.clear();
         DungeonsAPI.clear();
+        FinishChestRewardManager.shutdown();
     }
 
     private boolean loadInternals() {
