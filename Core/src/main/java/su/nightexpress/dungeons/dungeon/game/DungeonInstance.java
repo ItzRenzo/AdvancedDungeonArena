@@ -74,7 +74,9 @@
     import java.util.function.Predicate;
     import java.util.function.UnaryOperator;
     import java.util.stream.Collectors;
-    
+
+    import static su.nightexpress.dungeons.dungeon.reward.ChestLockManager.unlockPlayerChestInteraction;
+
     public class DungeonInstance implements Dungeon {
     
         private final DungeonPlugin    plugin;
@@ -89,7 +91,11 @@
         private final Map<UUID, DungeonMob>        mobByIdMap;
         private final Set<Item>                    groundItems;
         private final List<DungeonGamer> gamersSnapshot = new ArrayList<>(); // Snpshot of the current players for data viewing
-    
+        public Map<UUID, Location> chestBoughtByPlayers = new HashMap<>();
+
+
+
+
         private final String prefix;
     
         private World world;
@@ -157,6 +163,7 @@
             this.state = GameState.WAITING;
             this.eventReceivers.clear();
             this.gameResult = null;
+            this.chestBoughtByPlayers.clear();
         }
 
         public void stop() {
@@ -775,6 +782,8 @@
             gamer.removeBoard();
             this.players.remove(player.getUniqueId());
             plugin.getSoloManager().clearOnLeave(player.getUniqueId()); // If solo mode, then remove from solo mode
+            unlockPlayerChestInteraction(player);
+            FinishChestRewardManager.playersSpecificRewardInventory.remove(player.getUniqueId()); // Remove player from chest reward inventories if they have one open
 
 
             System.out.println("GameState: " + this.state);
@@ -1630,4 +1639,19 @@
                 }
             }
         }
+
+        public void addBoughtChestToInstance(@NotNull UUID playerUUID,
+                                             @NotNull Location chestLocation) {
+            this.chestBoughtByPlayers.put(playerUUID, chestLocation);
+        }
+
+        public boolean isChestBoughtByPlayers(@NotNull Location chestLocation) {
+            return this.chestBoughtByPlayers.containsValue(chestLocation);
+        }
+
+        public boolean isChestBuyer(UUID playerUUID, Location chestLocation) {
+            Location playerBoughtLocation = this.chestBoughtByPlayers.get(playerUUID);
+            return chestLocation.equals(playerBoughtLocation);
+        }
+
     }

@@ -1,27 +1,37 @@
 package su.nightexpress.dungeons.dungeon.reward;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.persistence.PersistentDataType;
 import su.nightexpress.dungeons.DungeonPlugin;
+import su.nightexpress.dungeons.dungeon.DungeonManager;
 import su.nightexpress.dungeons.dungeon.game.DungeonInstance;
 import su.nightexpress.dungeons.dungeon.player.DungeonGamer;
 
 import java.util.List;
 import java.util.Map;
 
+import static su.nightexpress.dungeons.dungeon.reward.ChestLockManager.ifOpeningChestAllowed;
+import static su.nightexpress.dungeons.dungeon.reward.ChestLockManager.ifPlayerAlreadyOpenedADifferentRewardChest;
+import static su.nightexpress.dungeons.dungeon.reward.FinishChestRewardManager.playersSpecificRewardInventory;
+
 public class FinishChestListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onChestOpen(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+
 
         Block block = event.getClickedBlock();
         if (block == null || block.getType() != Material.CHEST) return;
@@ -33,22 +43,58 @@ public class FinishChestListener implements Listener {
         if (rarity == null) return;
 
         event.setCancelled(true);
+        Location blockLocation = block.getLocation();
 
-        String dungeonId = resolveDungeonId(block.getLocation());
+        String dungeonId = resolveDungeonId(blockLocation);
         if (dungeonId.isEmpty()) return; // chest not registered to any active dungeon
 
-        // Anti-noclip: player must actually be in this dungeon
-        DungeonInstance dungeon = DungeonPlugin.instance.getDungeonManager().getInstanceById(dungeonId);
-        if (dungeon == null) return;
+        Player player = event.getPlayer();
 
-        DungeonGamer gamer = DungeonPlugin.instance.getDungeonManager().getDungeonPlayer(event.getPlayer());
-        if (gamer == null || gamer.getDungeon() != dungeon) {
-            // silently cancel — they shouldn't even see this chest
+        DungeonManager dungeonManager = DungeonPlugin.instance.getDungeonManager();
+
+        DungeonGamer playerData = dungeonManager.getDungeonPlayer(player.getUniqueId());
+        if (playerData == null) return;
+
+        DungeonInstance playerDungeonInstance = dungeonManager.getInstance(player);
+
+
+        if (playerDungeonInstance == null) {
             return;
         }
 
-        FinishChestRewardManager.onRewardChestOpened(event.getPlayer(), rarity, block.getLocation(), dungeonId);
+        if (!ifOpeningChestAllowed(player, dungeonId)) return;
+
+        boolean isChestBoughtByPlayers =
+                playerDungeonInstance.isChestBoughtByPlayers(blockLocation);
+
+        boolean isPlayerTheChestBuyer =
+                playerDungeonInstance.isChestBuyer(player.getUniqueId(), blockLocation);
+
+        // If chest is bought AND player is NOT the buyer
+        if (isChestBoughtByPlayers && !isPlayerTheChestBuyer) {
+            player.sendMessage(Component.text("This chest has already been opened by another player!"));
+            return;
+        }
+
+
+        // Player already bought this chest — reopen their saved inventory
+        if (isPlayerTheChestBuyer) {
+            Inventory savedInventory = playersSpecificRewardInventory.get(player.getUniqueId());
+            if (savedInventory != null) {
+                player.openInventory(savedInventory);
+            }
+            return;
+        }
+
+        if (ifPlayerAlreadyOpenedADifferentRewardChest(player)) {
+            player.sendMessage(Component.text("You have already opened a reward chest for this dungeon!"));
+            return;
+        }
+
+        FinishChestRewardManager.onRewardChestOpened(event.getPlayer(), rarity, blockLocation, dungeonId);
+        playerData.setPlayerLastRewardChestInteraction(blockLocation);
     }
+
 
 
     private String resolveDungeonId(Location location) {

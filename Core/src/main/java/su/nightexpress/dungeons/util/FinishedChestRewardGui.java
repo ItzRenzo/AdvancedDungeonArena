@@ -1,12 +1,15 @@
-package su.nightexpress.dungeons.dungeon.reward;
+package su.nightexpress.dungeons.util;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import su.nightexpress.dungeons.ComponentUtilities.StaticComponentManager;
 import su.nightexpress.dungeons.Components.FinishedChest.BuyRewardButton;
 import su.nightexpress.dungeons.Components.FinishedChest.CloseButton;
@@ -89,7 +92,7 @@ public class FinishedChestRewardGui {
 
     // -----------------------------------------------------------------------
 
-    public static void open(Player player, String dungeonId, String rarity) {
+    public static void open(Player player, String dungeonId, String rarity, Location location) {
 
         GUIConfigManager cfg = DungeonPlugin.instance.getGUIConfigManager();
 
@@ -102,7 +105,7 @@ public class FinishedChestRewardGui {
 
         StaticComponentManager.createBorder(gui, BORDER_SLOTS);
         placeDrops(gui);
-        placeBuyButton(gui, cfg);
+        placeBuyButton(gui, cfg, dungeonId, location);
         placeCloseButton(gui, cfg);
 
         player.openInventory(gui);
@@ -160,7 +163,7 @@ public class FinishedChestRewardGui {
     // -----------------------------------------------------------------------
     // Buy button (slot 48)
     // -----------------------------------------------------------------------
-    private static void placeBuyButton(Inventory gui, GUIConfigManager cfg) {
+    private static void placeBuyButton(Inventory gui, GUIConfigManager cfg, String dungeonId, Location location) {
 
         ItemStack item = new ItemStack(Material.GOLD_BLOCK);
         ItemMeta meta = item.getItemMeta();
@@ -177,6 +180,26 @@ public class FinishedChestRewardGui {
             lore.add(Component.text("§aClick to Purchase"));
             meta.lore(lore);
             meta.setEnchantmentGlintOverride(true);
+
+            // Store dungeonId in PCD
+            meta.getPersistentDataContainer().set(
+                    new NamespacedKey(DungeonPlugin.instance, "dungeon_id"),
+                    PersistentDataType.STRING,
+                    dungeonId
+            );
+
+            NamespacedKey dungeonKey = new NamespacedKey(DungeonPlugin.instance, "dungeon_id");
+            NamespacedKey locXKey   = new NamespacedKey(DungeonPlugin.instance, "chest_x");
+            NamespacedKey locYKey   = new NamespacedKey(DungeonPlugin.instance, "chest_y");
+            NamespacedKey locZKey   = new NamespacedKey(DungeonPlugin.instance, "chest_z");
+            NamespacedKey locWKey   = new NamespacedKey(DungeonPlugin.instance, "chest_world");
+
+            meta.getPersistentDataContainer().set(dungeonKey, PersistentDataType.STRING, dungeonId);
+            meta.getPersistentDataContainer().set(locXKey,    PersistentDataType.INTEGER, location.getBlockX());
+            meta.getPersistentDataContainer().set(locYKey,    PersistentDataType.INTEGER, location.getBlockY());
+            meta.getPersistentDataContainer().set(locZKey,    PersistentDataType.INTEGER, location.getBlockZ());
+            meta.getPersistentDataContainer().set(locWKey,    PersistentDataType.STRING,  location.getWorld().getName());
+
             item.setItemMeta(meta);
         }
 

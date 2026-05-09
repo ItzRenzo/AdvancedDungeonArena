@@ -32,6 +32,7 @@ import java.util.function.UnaryOperator;
 public class DungeonGamer implements DungeonPlayer {
 
     //private final DungeonPlugin plugin;
+    private Location playerLastRewardChestInteraction;
     private final Player           player;
     private final DungeonInstance  dungeon;
     private final List<GameReward> rewards;
@@ -377,5 +378,14 @@ public class DungeonGamer implements DungeonPlayer {
 
     public void setTeleporting(boolean teleporting) {
         this.teleporting = teleporting;
+    }
+
+
+    public Location getPlayerLastRewardChestInteraction() {
+        return playerLastRewardChestInteraction;
+    }
+
+    public void setPlayerLastRewardChestInteraction(Location playerLastRewardChestInteraction) {
+        this.playerLastRewardChestInteraction = playerLastRewardChestInteraction;
     }
 }

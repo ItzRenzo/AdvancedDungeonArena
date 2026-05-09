@@ -13,19 +13,17 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import su.nightexpress.dungeons.DungeonsAPI;
 import su.nightexpress.dungeons.dungeon.game.DungeonInstance;
 import su.nightexpress.dungeons.dungeon.reward.RewardChestConfig.Difficulty;
+import su.nightexpress.dungeons.util.FinishedChestRewardGui;
 import su.nightexpress.nightcore.util.geodata.pos.BlockPos;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class FinishChestRewardManager {
 
@@ -49,6 +47,8 @@ public class FinishChestRewardManager {
 
     private static final Map<String, List<Entity>>   activeDisplays = new HashMap<>();
     private static final Map<String, List<Location>> activeChests   = new HashMap<>();
+    public static Map<UUID, Inventory> playersSpecificRewardInventory = new HashMap<>();
+
 
     // -----------------------------------------------------------------------
     // Init / Teardown
@@ -155,7 +155,7 @@ public class FinishChestRewardManager {
     public static void onRewardChestOpened(@NotNull Player player, @NotNull String rarity, @NotNull Location location, @NotNull String dungeonId) {
         TextColor color = RARITY_COLORS.getOrDefault(rarity, TextColor.color(0xFFFFFF));
         player.sendMessage(Component.text("You opened a " + rarity + " chest!").color(color));
-        su.nightexpress.dungeons.dungeon.reward.FinishedChestRewardGui.open(player, dungeonId, rarity);
+        FinishedChestRewardGui.open(player, dungeonId, rarity, location);
     }
 
     // -----------------------------------------------------------------------
@@ -210,6 +210,7 @@ public class FinishChestRewardManager {
             chestKey = new NamespacedKey(resolvePlugin(), "finish_chest_rarity");
         }
     }
+
 
     @NotNull
     private static Plugin resolvePlugin() {
